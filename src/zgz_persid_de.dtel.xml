@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_DTEL" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <DD04V>
+    <ROLLNAME>ZGZ_PERSID_DE</ROLLNAME>
+    <DDLANGUAGE>T</DDLANGUAGE>
+    <DOMNAME>ZGZ_PERSID_DO</DOMNAME>
+    <HEADLEN>11</HEADLEN>
+    <SCRLEN1>07</SCRLEN1>
+    <SCRLEN2>11</SCRLEN2>
+    <SCRLEN3>11</SCRLEN3>
+    <DDTEXT>Personel Id</DDTEXT>
+    <REPTEXT>Personel Id</REPTEXT>
+    <SCRTEXT_S>Pers Id</SCRTEXT_S>
+    <SCRTEXT_M>Personel Id</SCRTEXT_M>
+    <SCRTEXT_L>Personel Id</SCRTEXT_L>
+    <DTELMASTER>T</DTELMASTER>
+    <REFKIND>D</REFKIND>
+   </DD04V>
+  </asx:values>
+ </asx:abap>
+</abapGit>
