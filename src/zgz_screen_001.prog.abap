@@ -10,4 +10,6 @@ INCLUDE zgz_screen_frm.
 
 START-OF-SELECTION.
 
+gv_cbox = 'X'.
+
 CALL SCREEN 0100.

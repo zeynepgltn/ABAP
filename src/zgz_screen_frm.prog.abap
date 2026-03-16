@@ -9,8 +9,8 @@
 *&
 *&---------------------------------------------------------------------*
 MODULE status_0100 OUTPUT.
- SET PF-STATUS 'STATUS_0100'.
- SET TITLEBAR 'TITLE_0100'.
+  SET PF-STATUS 'STATUS_0100'.
+  SET TITLEBAR 'TITLE_0100'.
 ENDMODULE.
 
 *&---------------------------------------------------------------------*
@@ -31,10 +31,16 @@ MODULE user_command_0100 INPUT.
 
   CASE sy-ucomm.
     WHEN '&BCK'.
-      IF gv_rad1 EQ 'X'.
+      IF gv_rad1 EQ 'X'. "'abap_true'
         gv_cins = 'KADIN'.
       ELSE.
         gv_cins = 'ERKEK'.
+      ENDIF.
+
+      IF gv_cbox EQ 'X'.
+        gv_onay = 'E'.
+      ELSE.
+        gv_onay = 'H'.
       ENDIF.
       MESSAGE gv_ad TYPE 'I'.
       LEAVE TO SCREEN 0.
