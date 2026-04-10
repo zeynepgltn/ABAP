@@ -103,7 +103,7 @@ START-OF-SELECTION.
   LOOP AT lt_temp INTO DATA(ls_temp).
     CLEAR: ls_alv, ls_color.
 
-    "kaynak hedef, Tablodaki satırın KENDİSİ
+    "kaynak hedef, Tablodaki satır
     MOVE-CORRESPONDING ls_temp TO ls_alv.
 
     IF ls_alv-labst = 0.

@@ -1,6 +1,7 @@
 *&---------------------------------------------------------------------*
 *& Include          ZGZ_RA_TOP
 *&---------------------------------------------------------------------*
+TYPE-POOLS: truxs.
 
 TYPES: BEGIN OF ty_alv,
          vbeln  TYPE vbak-vbeln,
@@ -68,3 +69,52 @@ DATA: gs_outputparams TYPE  sfpoutputparams,
 DATA: ref_grid          TYPE REF TO cl_gui_alv_grid.
 
 DATA: lt_keys TYPE TABLE OF vbeln_va.
+
+
+DATA: gv_filename    TYPE string, "dosya
+      gv_path        TYPE string, "klasör
+      gv_fullpath    TYPE string, "full yol
+      gv_user_action TYPE i. "action.
+
+DATA: BEGIN OF ty_excel,
+        name TYPE c LENGTH 30,
+      END OF ty_excel.
+
+DATA: gt_header_e LIKE TABLE OF ty_excel.
+
+TYPES: BEGIN OF ty_excel_download,
+         vbeln  TYPE vbak-vbeln,
+         posnr  TYPE vbap-posnr,
+         kdmat  TYPE vbap-kdmat,
+         matnr  TYPE vbap-matnr,
+         maktx  TYPE makt-maktx,
+         kunnr  TYPE vbak-kunnr,
+         kwmeng TYPE vbap-kwmeng,
+         kbetr  TYPE prcd_elements-kbetr,
+         netwr  TYPE vbap-netwr,
+       END OF ty_excel_download.
+
+DATA: gt_excel TYPE TABLE OF ty_excel_download,
+      gs_excel TYPE ty_excel_download.
+
+DATA: BEGIN OF wa_header,
+        name TYPE c LENGTH 30,
+      END OF wa_header.
+
+DATA: t_header LIKE TABLE OF wa_header.
+
+DATA: gt_header_s   TYPE TABLE OF ty_excel_download.
+
+
+DATA: gv_xstring TYPE xstring,
+      gt_solix   TYPE solix_tab,
+      gv_length  TYPE i.
+
+"tablo için bir data referansı tanımla
+DATA: lr_data_ref TYPE REF TO data.
+
+" Tablonun adresini (referansını) değişkenine
+GET REFERENCE OF gt_excel INTO lr_data_ref.
+
+"Metodun beklediği tipte yeni bir tablo
+DATA: gt_fcat_lvc TYPE lvc_t_fcat.
