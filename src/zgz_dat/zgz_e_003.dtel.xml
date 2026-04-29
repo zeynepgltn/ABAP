@@ -10,11 +10,11 @@
     <SCRLEN1>07</SCRLEN1>
     <SCRLEN2>13</SCRLEN2>
     <SCRLEN3>13</SCRLEN3>
-    <DDTEXT>Öğrenci Soyad</DDTEXT>
-    <REPTEXT>Öğrenci Soyad</REPTEXT>
-    <SCRTEXT_S>Ögr Syd</SCRTEXT_S>
-    <SCRTEXT_M>Öğrenci Soyad</SCRTEXT_M>
-    <SCRTEXT_L>Öğrenci Soyad</SCRTEXT_L>
+    <DDTEXT>Soyad</DDTEXT>
+    <REPTEXT>Soyad</REPTEXT>
+    <SCRTEXT_S>Syd</SCRTEXT_S>
+    <SCRTEXT_M>Soyad</SCRTEXT_M>
+    <SCRTEXT_L>Soyad</SCRTEXT_L>
     <DTELMASTER>T</DTELMASTER>
     <REFKIND>D</REFKIND>
    </DD04V>

@@ -1,81 +1,91 @@
 CLASS lcl_controller IMPLEMENTATION.
-  METHOD handle_toolbar. "toolbar button ekleme
-    DATA: ls_toolbar TYPE stb_button.
-
-    CLEAR: ls_toolbar.
-
-    ls_toolbar-function = 'ADOBE_PRINT'.
-    ls_toolbar-icon = '@03@'.
-    ls_toolbar-quickinfo = 'Adobe Form Bas'.
-
-    APPEND ls_toolbar TO e_object->mt_toolbar.
-
-    CLEAR: ls_toolbar.
-
-    ls_toolbar-function = 'EXCELD'.
-    ls_toolbar-icon = '@2S@'.
-    ls_toolbar-quickinfo = 'Excel Indir'.
-
-    APPEND ls_toolbar TO e_object->mt_toolbar.
-
-    CLEAR: ls_toolbar.
-
-    ls_toolbar-function  = 'SEND_MAIL'.
-    ls_toolbar-icon      = '@1S@'.
-    ls_toolbar-quickinfo = 'Mail Gönder'.
-
-    APPEND ls_toolbar TO e_object->mt_toolbar.
+  METHOD create_instance.
+    IF mo_instance IS INITIAL.
+      mo_instance = NEW lcl_controller( ).
+    ENDIF.
+    r_obj = mo_instance.
   ENDMETHOD.
 
+  METHOD initialization.
+    " Radio buton ikonları ve açıklamaları
+    ic1    = '@04@'.
+    txt_r1 = 'Satış Siparişi (VBAK)'.
+    ic2    = '@05@'.
+    txt_r2 = 'Satınalma Siparişi (EKPO)'.
 
-  METHOD handle_user_command.
-    DATA: lt_rows TYPE lvc_t_row,
-          ls_row  TYPE lvc_s_row.
+    " Dosya alanı
+    txt_file = 'Dosya adı:'.
 
-    CALL METHOD go_alv->check_changed_data.
+    gv_btn1 = 'Şablon indir'.
+*  gv_btn2 = 'Şablon yükle'.
 
-    CASE e_ucomm.
-      WHEN 'ADOBE_PRINT'.
+    " sscrfields-functxt_01 ifadesi SELECTION-SCREEN FUNCTION KEY 1'e denk gelir.
+    sscrfields-functxt_01 = VALUE smp_dyntxt(
+                              text      = 'Şablon İndir'
+                              icon_id   = '@30@' " Excel/Dosya ikonu
+                              quickinfo = 'Şablon İndir' ).
+  ENDMETHOD.
 
-        CLEAR lt_keys.
+  METHOD at_selection_screen_valreq.
+    DATA: lv_rc    TYPE i,
+          lt_files TYPE filetable.
 
-        LOOP AT gt_alv INTO gs_alv WHERE selkz = 'X'.
-          APPEND gs_alv-vbeln TO lt_keys.
-        ENDLOOP.
+    cl_gui_frontend_services=>file_open_dialog(
+   EXPORTING
+     window_title      = 'Excel Seç'
+     default_extension = 'xlsx'
+     file_filter       = 'Excel Files (*.xlsx)|*.xlsx'
+   CHANGING
+     file_table        = lt_files
+     rc                = lv_rc ).
 
-        SORT lt_keys.
-        DELETE ADJACENT DUPLICATES FROM lt_keys.
+    IF lv_rc = 1.
+      p_file = lt_files[ 1 ]-filename.
+    ENDIF.
+  ENDMETHOD.
 
-        IF lt_keys IS NOT INITIAL.
-          me->get_adobeform( ).
-        ELSE.
-          MESSAGE 'Lütfen satır seçiniz.' TYPE 'I'.
-        ENDIF.
+  METHOD at_selection_screen.
+    IF rb_1 = 'X'.
+      go_controller->gv_rb = '1'.
+    ELSE.
+      go_controller->gv_rb = '2'.
+    ENDIF.
 
-      WHEN 'EXCELD'.
-        DATA: lr_data_ref TYPE REF TO data.
+    " dosya uzantı kontrolü
+    IF p_file IS NOT INITIAL.
+      IF p_file NS '.xlsx' AND p_file NS '.XLSX'. "Bir metnin içinde, belirtilen başka bir metin parçasının bulunmadığını kontrol eder.
+        MESSAGE 'Lütfen .xlsx formatında dosya yükleyiniz.' TYPE 'E'.
+      ENDIF.
+    ENDIF.
 
-        IF  me->gv_rb = '1'.
+    CASE sscrfields-ucomm.
 
-          GET REFERENCE OF gt_alv INTO lr_data_ref.
+      WHEN 'FC01' OR 'SABLOND'.
+        DATA: bos_table     TYPE TABLE OF vbak,
+              lv_boyut      TYPE i,
+              lr_header_ref TYPE REF TO data.
 
-          me->get_excell(
-         EXPORTING
-          it_data     = lr_data_ref " importinge gönder,Metodun içine veri gönderiyorum
-          it_fcat     = gt_fcat ).
+        GET REFERENCE OF bos_table INTO lr_header_ref.
 
-        ELSE.
+        go_controller->set_fcat( ).
 
-          GET REFERENCE OF gt_alvv INTO lr_data_ref.
-
-          me->get_excell(
+        IF  go_controller->gv_rb = '1'.
+          go_controller->get_excell(
           EXPORTING
-           it_data     = lr_data_ref " importinge gönder,Metodun içine veri gönderiyorum
-           it_fcat     = gt_fcatt
+           it_data     = lr_header_ref " importinge gönder,Metodun içine veri gönderiyorum
+           it_fcat     = gt_fcat
+          IMPORTING
+            ev_file_size    = lv_boyut
         ).
-
+        ELSE.
+          go_controller->get_excell(
+          EXPORTING
+           it_data     = lr_header_ref " importinge gönder,Metodun içine veri gönderiyorum
+           it_fcat     = gt_fcatt
+          IMPORTING
+            ev_file_size    = lv_boyut
+        ).
         ENDIF.
-
     ENDCASE.
   ENDMETHOD.
 
@@ -152,6 +162,13 @@ CLASS lcl_controller IMPLEMENTATION.
             INNER JOIN ekpo AS ep ON e~ebeln = ep~ebeln
             INTO CORRESPONDING FIELDS OF TABLE @gt_alvv.
     ENDIF.
+  ENDMETHOD.
+
+  METHOD pbo.
+
+  ENDMETHOD.
+
+  METHOD pai.
 
   ENDMETHOD.
 
@@ -261,13 +278,27 @@ CLASS lcl_controller IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_adobeform.
+    DATA: ls_formoutput TYPE fpformoutput,
+          lt_pdfs       TYPE tty_pdfs.
+
     me->get_header( ).
 
     CLEAR gs_outputparams.
 
+    IF iv_mail = abap_true.
+      gs_outputparams-getpdf = abap_true.
+    ENDIF. "PDF'i bir değişkenin içine "hapsetmek" ve sonra o değişkeni maile eklemek
+
+
     gs_outputparams-nodialog = abap_true.  " Yazıcı seçimi sorma
-    gs_outputparams-preview  = abap_true.  " önizleme aç
-    " gs_outputparams-dest   = 'LP01'.
+    gs_outputparams-dest   = 'LP01'.
+
+    "maile giderken preview olmasn
+    IF iv_mail = abap_true.
+      gs_outputparams-preview = abap_false.
+    ELSE.
+      gs_outputparams-preview = abap_true.
+    ENDIF.
 
     CALL FUNCTION 'FP_JOB_OPEN'
       CHANGING
@@ -278,9 +309,6 @@ CLASS lcl_controller IMPLEMENTATION.
         system_error    = 3
         internal_error  = 4
         OTHERS          = 5.
-    IF sy-subrc <> 0.
-* Implement suitable error handling here
-    ENDIF.
 
     " Fonksiyon Adı
     CALL FUNCTION 'FP_FUNCTION_MODULE_NAME'
@@ -311,20 +339,19 @@ CLASS lcl_controller IMPLEMENTATION.
 
       CALL FUNCTION gv_funcname
         EXPORTING
-          /1bcdwb/docparams = gs_docparams
-          is_header         = gs_header
-          it_items          = gt_sf
-* IMPORTING
-*         /1BCDWB/FORMOUTPUT       =
+          /1bcdwb/docparams  = gs_docparams
+          is_header          = gs_header
+          it_items           = gt_sf
+        IMPORTING
+          /1bcdwb/formoutput = ls_formoutput
         EXCEPTIONS
-          usage_error       = 1
-          system_error      = 2
-          internal_error    = 3
-          OTHERS            = 4.
-      IF sy-subrc <> 0.
-* Implement suitable error handling here
-      ENDIF.
+          usage_error        = 1
+          system_error       = 2
+          internal_error     = 3
+          OTHERS             = 4.
 
+      " Her belgenin PDF'ini sakla
+      APPEND ls_formoutput-pdf TO lt_pdfs.
     ENDLOOP.
 
     CALL FUNCTION 'FP_JOB_CLOSE'
@@ -335,8 +362,13 @@ CLASS lcl_controller IMPLEMENTATION.
         system_error   = 2
         internal_error = 3
         OTHERS         = 4.
-    IF sy-subrc <> 0.
-* Implement suitable error handling here
+
+    " Mail modu ise gönder
+    IF iv_mail = abap_true AND lt_pdfs IS NOT INITIAL.
+      me->send_mail_pdf(
+        iv_subject = iv_subject
+        iv_receiver = iv_receiver
+        it_pdfs = lt_pdfs ).
     ENDIF.
   ENDMETHOD.
 
@@ -410,6 +442,10 @@ CLASS lcl_controller IMPLEMENTATION.
         buffer       = ev_xstring
       TABLES
         binary_tab   = lt_bin_tab.
+
+    IF lt_bin_tab IS INITIAL.
+      RETURN.
+    ENDIF.
   ENDMETHOD.
 
   METHOD get_excell.
@@ -456,6 +492,66 @@ CLASS lcl_controller IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD validate_excel.
+    "dönecek değer
+    rv_valid = abap_false.
+
+    "gelen değer okunuyor mu kontrolü
+    FIELD-SYMBOLS: <lt_data> TYPE ANY TABLE,
+                   <ls_row>  TYPE any.
+
+    ASSIGN it_excel_data->* TO <lt_data>.
+
+    IF <lt_data> IS NOT ASSIGNED.
+      MESSAGE 'Excel verisi okunamadı.' TYPE 'S' DISPLAY LIKE 'E'.
+      RETURN. "methoddan çık
+    ENDIF.
+
+    " satır sayısı kontrolü
+    DATA(lv_lines) = lines( <lt_data> ).
+
+    IF lv_lines < 2.
+      MESSAGE 'Excel boş veya sadece başlık satırı var.' TYPE 'S' DISPLAY LIKE 'E'.
+      RETURN.
+    ENDIF.
+
+
+    " Başlık satırı
+    LOOP AT <lt_data> ASSIGNING <ls_row>.
+      EXIT. " İlk satırı al ve çık
+    ENDLOOP.
+    " Sütun sayısı kontrolü
+    DATA: lv_excel_cols TYPE i,
+          lv_expected   TYPE i.
+
+    DO. "belirli bir sayı sınırı koymadan sonsuz bir döngü
+      ASSIGN COMPONENT sy-index OF STRUCTURE <ls_row> TO FIELD-SYMBOL(<fs_col>).
+
+      IF sy-subrc <> 0. "o satırda artık bir sütun bulunmadı
+        EXIT.
+      ENDIF.
+
+      lv_excel_cols = sy-index.
+
+      UNASSIGN <fs_col>. "temiz başlangıç
+    ENDDO.
+
+    " Beklenen sütun sayısı
+    IF me->gv_rb = '1'.
+      lv_expected = 11.
+    ELSE.
+      lv_expected = 2.
+    ENDIF.
+
+    IF lv_excel_cols <> lv_expected.
+      MESSAGE |Sütun sayısı uyumsuz. Beklenen: { lv_expected }, Gelen: { lv_excel_cols }|
+        TYPE 'S' DISPLAY LIKE 'E'.
+      RETURN.
+    ENDIF.
+
+    rv_valid = abap_true.
+  ENDMETHOD.
+
   METHOD excel_upload_cl.
     " Dosya adı dışarıdan geldiyse dialog açma
     IF gv_filename IS INITIAL.
@@ -488,6 +584,10 @@ CLASS lcl_controller IMPLEMENTATION.
      IMPORTING
        ev_xstring  = lv_bin_data ).
 
+    IF lv_bin_data IS INITIAL.
+      RETURN.
+    ENDIF.
+
     " Excel Motorunu Çalıştır (Nesne Oluşturma) Burası 'NEW' yerine statik metot
     DATA(lo_excel) = NEW cl_fdt_xl_spreadsheet(
       document_name = 'test.xlsx'
@@ -512,6 +612,12 @@ CLASS lcl_controller IMPLEMENTATION.
 
     " Veriyi serbest bırak
     ASSIGN lo_data_ref->* TO FIELD-SYMBOL(<lt_excel_data>).
+
+    " Doğrulama
+    IF me->validate_excel( it_excel_data = lo_data_ref ) = abap_false.
+      RETURN.
+    ENDIF.
+
 
     CLEAR: gt_alv , gt_alvv.
 
@@ -566,11 +672,9 @@ CLASS lcl_controller IMPLEMENTATION.
     ENDIF.
   ENDMETHOD.
 
-
-
   METHOD send_mail.
     DATA: lt_mail_text   TYPE bcsy_text,
-          lv_xml_xstring TYPE xstring,
+          lv_xstring     TYPE xstring,
           lt_excel_solix TYPE solix_tab,
           lv_excel_size  TYPE so_obj_len,
           lr_data_ref    TYPE REF TO data.
@@ -584,45 +688,193 @@ CLASS lcl_controller IMPLEMENTATION.
       ( line = 'İyi çalışmalar.' ) ).
 
     TRY.
-        " Tüm ALV verisini al
-        GET REFERENCE OF gt_alv INTO lr_data_ref.
+        " get_xstring metodu
+        IF me->gv_rb = '1'.
+          GET REFERENCE OF gt_alv INTO lr_data_ref.
 
-        " Excel oluştur
-        DATA(lo_result) = cl_salv_ex_util=>factory_result_data_table(
-          r_data         = lr_data_ref
-          t_fieldcatalog = gt_fcat ).
+          me->get_xstring(
+            EXPORTING
+              it_data    = lr_data_ref
+              it_fcat    = gt_fcat
+            IMPORTING
+              ev_xstring = lv_xstring ).
+        ELSE.
+          GET REFERENCE OF gt_alvv INTO lr_data_ref.
 
-        cl_salv_bs_tt_util=>if_salv_bs_tt_util~transform(
-          EXPORTING
-            r_result_data = lo_result
-            xml_type      = if_salv_bs_xml=>c_type_xlsx
-          IMPORTING
-            xml           = lv_xml_xstring ).
+          me->get_xstring(
+            EXPORTING
+              it_data    = lr_data_ref
+              it_fcat    = gt_fcatt
+            IMPORTING
+              ev_xstring = lv_xstring ).
+        ENDIF.
 
-        " Binary çevir
-        lt_excel_solix = cl_bcs_convert=>xstring_to_solix(
-          iv_xstring = lv_xml_xstring ).
-        lv_excel_size = xstrlen( lv_xml_xstring ).
+        IF lv_xstring IS INITIAL.
+          MESSAGE 'Excel oluşturulamadı.' TYPE 'S' DISPLAY LIKE 'E'.
+          RETURN.
+        ENDIF.
+
+        " Mail için SOLIX
+        lt_excel_solix = cl_bcs_convert=>xstring_to_solix( iv_xstring = lv_xstring ).
+
+        "SAP'nin e-posta sınıfları (BCS) bizden dosyanın boyutunu bildirmemizi ister
+        lv_excel_size = xstrlen( lv_xstring ).
 
         " Mail oluştur
         DATA(lo_request) = cl_bcs=>create_persistent( ).
         DATA(lo_doc) = cl_document_bcs=>create_document(
-          i_type    = 'RAW'
-          i_subject = iv_subject
-          i_text    = lt_mail_text ).
+                         i_type          =  'RAW'       " Code for Document Class
+                         i_subject       =  iv_subject  " Short Description of Contents
+                         i_text          =  lt_mail_text" Content (Text-Like)
+                       ).
 
         " Excel ekle
         lo_doc->add_attachment(
-          i_attachment_type    = 'BIN'
-          i_attachment_subject = 'Rapor.xlsx'
-          i_attachment_size    = lv_excel_size
-          i_att_content_hex    = lt_excel_solix ).
+          i_attachment_type     =  'BIN'            " Document Class for Attachment
+          i_attachment_subject  =  'Rapor.xlsx'     " Attachment Title
+          i_attachment_size     =  lv_excel_size    " Size of Document Content
+          i_att_content_hex     =  lt_excel_solix   " Content (Binary)
+        ).
+        "CATCH cx_document_bcs. " BCS: Document Exceptions
 
         " Gönder
         lo_request->set_document( lo_doc ).
+*
+        " POP UPTAN GELEN
+        LOOP AT gt_mail INTO gs_mail WHERE cc = 'X'.
+          DATA(lo_recipient) = cl_cam_address_bcs=>create_internet_address( gs_mail-smtp_addr ).
+
+          IF gs_mail-cc = 'X'.
+            lo_request->add_recipient(
+              i_recipient = lo_recipient
+              i_copy      = abap_true ).
+          ELSE.
+            lo_request->add_recipient(
+              i_recipient = lo_recipient ).
+          ENDIF.
+        ENDLOOP.
+
+        IF sy-subrc <> 0.
+          MESSAGE 'Alıcı seçilmedi.' TYPE 'S' DISPLAY LIKE 'E'.
+          RETURN.
+        ENDIF.
+
+        lo_request->set_send_immediately( i_send_immediately = ' ' ).
+
+        "Hazırladığımız e-posta paketini gönderim sırasına sokar.
+        DATA(lv_result) = lo_request->send( i_with_error_screen = 'X' ).
+
+        IF lv_result = abap_true.
+          COMMIT WORK AND WAIT.
+          MESSAGE 'Mail gönderildi.' TYPE 'S'.
+        ELSE.
+          MESSAGE 'Mail gönderilemedi.' TYPE 'S' DISPLAY LIKE 'E'.
+        ENDIF.
+
+      CATCH cx_bcs INTO DATA(lx_bcs).
+        MESSAGE lx_bcs->get_text( ) TYPE 'S' DISPLAY LIKE 'E'.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD build_html_table.
+    DATA: lv_color TYPE string,
+          lv_idx   TYPE i VALUE 0.
+
+    rv_html = '<html><head><meta charset="UTF-8"></head><body>'.
+    rv_html = rv_html && '<p>Sayın İlgili,</p>'.
+    rv_html = rv_html && '<p>Rapor aşağıdadır.</p>'.
+
+    " Tablo başlangıcı
+    rv_html = rv_html && '<table border="1" cellpadding="5" cellspacing="0" '
+                      && 'style="border-collapse:collapse; font-family:Arial; font-size:12px;">'.
+
+    " Başlık satırı
+    rv_html = rv_html && '<tr style="background-color:#4472C4; color:white; font-weight:bold;">'.
+
+    IF me->gv_rb = '1'.
+      rv_html = rv_html && '<td>SD Belgesi</td>'.
+      rv_html = rv_html && '<td>Kalem</td>'.
+      rv_html = rv_html && '<td>Müşteri Malzemesi</td>'.
+      rv_html = rv_html && '<td>Malzeme</td>'.
+      rv_html = rv_html && '<td>Tanım</td>'.
+      rv_html = rv_html && '<td>Müşteri</td>'.
+      rv_html = rv_html && '<td>Miktar</td>'.
+      rv_html = rv_html && '<td>Tutar</td>'.
+      rv_html = rv_html && '<td>Birim</td>'.
+      rv_html = rv_html && '<td>Net Değer</td>'.
+      rv_html = rv_html && '<td>PB</td>'.
+      rv_html = rv_html && '</tr>'.
+
+      LOOP AT gt_alv INTO gs_alv.
+        lv_idx = lv_idx + 1.
+        IF lv_idx MOD 2 = 0.
+          lv_color = 'background-color:#D9E2F3;'.
+        ELSE.
+          lv_color = ''.
+        ENDIF.
+
+        rv_html = rv_html && |<tr style="{ lv_color }">|.
+        rv_html = rv_html && |<td>{ gs_alv-vbeln }</td>|.
+        rv_html = rv_html && |<td>{ gs_alv-posnr }</td>|.
+        rv_html = rv_html && |<td>{ gs_alv-kdmat }</td>|.
+        rv_html = rv_html && |<td>{ gs_alv-matnr }</td>|.
+        rv_html = rv_html && |<td>{ gs_alv-maktx }</td>|.
+        rv_html = rv_html && |<td>{ gs_alv-kunnr }</td>|.
+        rv_html = rv_html && |<td>{ gs_alv-kwmeng }</td>|.
+        rv_html = rv_html && |<td>{ gs_alv-kbetr }</td>|.
+        rv_html = rv_html && |<td>{ gs_alv-meins }</td>|.
+        rv_html = rv_html && |<td>{ gs_alv-netwr }</td>|.
+        rv_html = rv_html && |<td>{ gs_alv-waerk }</td>|.
+        rv_html = rv_html && '</tr>'.
+      ENDLOOP.
+
+    ELSE.
+      rv_html = rv_html && '<td>Satınalma Belgesi</td>'.
+      rv_html = rv_html && '<td>Kalem</td>'.
+      rv_html = rv_html && '</tr>'.
+
+      LOOP AT gt_alvv INTO gs_alvv.
+        lv_idx = lv_idx + 1.
+        IF lv_idx MOD 2 = 0.
+          lv_color = 'background-color:#D9E2F3;'.
+        ELSE.
+          lv_color = ''.
+        ENDIF.
+
+        rv_html = rv_html && |<tr style="{ lv_color }">|.
+        rv_html = rv_html && |<td>{ gs_alvv-ebeln }</td>|.
+        rv_html = rv_html && |<td>{ gs_alvv-ebelp }</td>|.
+        rv_html = rv_html && '</tr>'.
+      ENDLOOP.
+    ENDIF.
+
+    rv_html = rv_html && '</table>'.
+    rv_html = rv_html && '<p>İyi çalışmalar.</p>'.
+    rv_html = rv_html && '</body></html>'.
+  ENDMETHOD.
+
+  METHOD send_mail_html.
+    TRY.
+        " HTML tabloyu oluştur
+        DATA(lv_html) = me->build_html_table( ).
+
+        " HTML'i SOLIX'e çevir
+        DATA(lv_xstring) = cl_bcs_convert=>string_to_xstring( lv_html ).
+        DATA(lt_solix) = cl_bcs_convert=>xstring_to_solix( iv_xstring = lv_xstring ).
+        DATA(lv_size) = CONV so_obj_len( xstrlen( lv_xstring ) ).
+
+        " Mail oluştur
+        DATA(lo_request) = cl_bcs=>create_persistent( ).
+        DATA(lo_doc) = cl_document_bcs=>create_document(
+          i_type    = 'HTM'
+          i_subject = iv_subject
+          i_hex     = lt_solix
+          i_length  = lv_size ).
+
+        lo_request->set_document( lo_doc ).
         lo_request->add_recipient(
           i_recipient = cl_cam_address_bcs=>create_internet_address( iv_receiver ) ).
-        lo_request->set_send_immediately( 'X' ).
+        lo_request->set_send_immediately( ' ' ).
 
         DATA(lv_result) = lo_request->send( i_with_error_screen = 'X' ).
 
@@ -638,4 +890,560 @@ CLASS lcl_controller IMPLEMENTATION.
     ENDTRY.
   ENDMETHOD.
 
+  METHOD send_mail_pdf.
+    DATA: lt_mail_text TYPE bcsy_text,
+          lv_count     TYPE i.
+
+    lt_mail_text = VALUE #(
+      ( line = 'Sayın İlgili,' )
+      ( line = '' )
+      ( line = 'Rapor ekte PDF olarak sunulmuştur.' )
+      ( line = '' )
+      ( line = 'İyi çalışmalar.' ) ).
+
+    TRY.
+        DATA(lo_request) = cl_bcs=>create_persistent( ).
+        DATA(lo_doc) = cl_document_bcs=>create_document(
+          i_type    = 'RAW'
+          i_subject = iv_subject
+          i_text    = lt_mail_text ).
+
+        " Her PDF'i ayrı attachment olarak ekleme
+        LOOP AT it_pdfs INTO DATA(lv_pdf).
+          lv_count += 1.
+          DATA(lt_solix) = cl_bcs_convert=>xstring_to_solix( iv_xstring = lv_pdf ).
+          DATA(lv_size)  = CONV so_obj_len( xstrlen( lv_pdf ) ).
+
+          lo_doc->add_attachment(
+            i_attachment_type    = 'PDF'
+            i_attachment_subject = |Rapor_{ lv_count }.pdf|
+            i_attachment_size    = lv_size
+            i_att_content_hex    = lt_solix ).
+        ENDLOOP.
+
+        lo_request->set_document( lo_doc ).
+        lo_request->add_recipient(
+        i_recipient = cl_cam_address_bcs=>create_internet_address( iv_receiver ) ).
+        lo_request->set_send_immediately( ' ' ).
+
+        DATA(lv_result) = lo_request->send( i_with_error_screen = 'X' ).
+
+        IF lv_result = abap_true.
+          COMMIT WORK AND WAIT.
+          MESSAGE |{ lv_count } adet PDF mail gönderildi.| TYPE 'S'.
+        ELSE.
+          MESSAGE 'Mail gönderilemedi.' TYPE 'S' DISPLAY LIKE 'E'.
+        ENDIF.
+
+      CATCH cx_bcs INTO DATA(lx_bcs).
+        MESSAGE lx_bcs->get_text( ) TYPE 'S' DISPLAY LIKE 'E'.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD get_excel_abap2xlsx.
+    DATA: lt_solix TYPE solix_tab,
+          lv_size  TYPE i.
+
+    cl_gui_frontend_services=>file_save_dialog(
+      EXPORTING
+        window_title = 'Excel (abap2xlsx)'
+        file_filter  = 'Excel Dosyası (*.xlsx)|*.xlsx'
+      CHANGING
+        filename    = gv_filename
+        path        = gv_path
+        fullpath    = gv_fullpath
+        user_action = gv_user_action ).
+
+    CHECK gv_user_action = cl_gui_frontend_services=>action_ok.
+
+    DATA(lo_excel)     = NEW zcl_excel( ). "Boş bir Excel çalışma kitabı (Workbook)
+    DATA(lo_worksheet) = lo_excel->get_active_worksheet( ). "Kitabın içindeki ilk boş sayfayı yakalar ve adını 'Rapor'
+    lo_worksheet->set_title( 'Rapor' ).
+
+    DATA: lv_col TYPE i,
+          lv_row TYPE i VALUE 1.
+
+    " Başlık stili
+    DATA(lo_style_header) = lo_excel->add_new_style( ). "bir stil referansı
+    lo_style_header->font->bold = abap_true. "
+    lo_style_header->fill->filltype = zcl_excel_style_fill=>c_fill_solid. "arka planını tamamen sabit bir renk
+    lo_style_header->fill->fgcolor-rgb = 'FFC7CE'. "dolgu
+    lo_style_header->font->color-rgb = '9C0006'. "font color
+
+    DATA(lv_style_guid) = lo_style_header->get_guid( ). "benzersiz bir kimlik
+
+    " Başlık satırı
+    LOOP AT it_fcat INTO DATA(ls_fcat) WHERE tech <> abap_true
+                                         AND fieldname <> 'SELKZ'
+                                         AND fieldname <> 'LINE_COLOR'.
+      lv_col += 1.
+      DATA(lv_header) = COND string( WHEN ls_fcat-coltext IS NOT INITIAL
+                                      THEN ls_fcat-coltext "1.ihtimal
+                                      ELSE ls_fcat-fieldname ). "2.ihtimal
+
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = lv_col ip_value = lv_header ). "verileri celle ver
+      lo_worksheet->set_cell_style( ip_row = lv_row ip_column = lv_col ip_style = lv_style_guid ). "stili celle ver
+    ENDLOOP.
+
+    " Veri satırları
+    FIELD-SYMBOLS: <lt_data> TYPE ANY TABLE. "Hangi yapıda olduğunu bilmediğimiz (Generic) bir tablo
+    ASSIGN it_data->* TO <lt_data>.
+
+    LOOP AT <lt_data> ASSIGNING FIELD-SYMBOL(<ls_row>).
+      lv_row += 1.
+      lv_col = 0. "yazmaya en baştan
+
+      LOOP AT it_fcat INTO ls_fcat WHERE tech <> abap_true
+                                     AND fieldname <> 'SELKZ'
+                                     AND fieldname <> 'LINE_COLOR'. "bu sutunları dışta tut
+        lv_col += 1.
+        ASSIGN COMPONENT ls_fcat-fieldname OF STRUCTURE <ls_row> TO FIELD-SYMBOL(<fs_val>). "fcatten hangi kolonun geleceği belli değil
+        IF sy-subrc = 0.
+          lo_worksheet->set_cell( ip_row = lv_row ip_column = lv_col ip_value = <fs_val> ). "cell doldur
+        ENDIF.
+      ENDLOOP.
+    ENDLOOP.
+
+    lo_worksheet->calculate_column_widths( ). "sütun genişliklerini otomatik
+
+    " xstring'e çevir ve indir
+    DATA(lo_writer) = CAST zif_excel_writer( NEW zcl_excel_writer_2007( ) ). "writer nesnesi
+    DATA(lv_xstring) = lo_writer->write_file( lo_excel ). "verilerini, stilleri ve sayfaları tek bir uzun xstring
+
+    CALL FUNCTION 'SCMS_XSTRING_TO_BINARY'
+      EXPORTING
+        buffer        = lv_xstring
+      IMPORTING
+        output_length = lv_size
+      TABLES
+        binary_tab    = lt_solix.
+
+    CALL FUNCTION 'GUI_DOWNLOAD'
+      EXPORTING
+        bin_filesize = lv_size
+        filename     = gv_fullpath
+        filetype     = 'BIN'
+      TABLES
+        data_tab     = lt_solix
+      EXCEPTIONS
+        OTHERS       = 1.
+
+    IF sy-subrc = 0.
+      MESSAGE 'Excel indirildi.' TYPE 'S'.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD get_excel_from_adobe.
+    DATA: lt_solix TYPE solix_tab,
+          lv_size  TYPE i.
+
+    DATA: lv_mime_url  TYPE string,
+          lv_logo_data TYPE xstring.
+
+    " Seçili satır kontrolü
+    IF lt_keys IS INITIAL.
+      MESSAGE 'Lütfen satır seçiniz.' TYPE 'I'.
+      RETURN.
+    ENDIF.
+
+    cl_gui_frontend_services=>file_save_dialog(
+      EXPORTING
+        window_title = 'Adobe -> Excel'
+        file_filter  = 'Excel Dosyası (*.xlsx)|*.xlsx'
+      CHANGING
+        filename    = gv_filename
+        path        = gv_path
+        fullpath    = gv_fullpath
+        user_action = gv_user_action ).
+
+    CHECK gv_user_action = cl_gui_frontend_services=>action_ok.
+
+    " Adobe Form verilerini topla
+    me->get_header( ).
+
+    DATA(lo_excel)     = NEW zcl_excel( ). "Hafızada boş bir Excel dosyası (Workbook)
+    DATA(lo_worksheet) = lo_excel->get_active_worksheet( ). "aktif olan (ilk) sayfayı
+    lo_worksheet->set_title( 'Sipariş Raporu' ). "alt kısmında görünen sayfa ismini
+
+    " Başlık stili
+    DATA(lo_style_h) = lo_excel->add_new_style( ). "boş bir stil şablonu
+    lo_style_h->font->bold = abap_true.
+    lo_style_h->fill->filltype = zcl_excel_style_fill=>c_fill_solid.
+    lo_style_h->fill->fgcolor-rgb = '92D050'.
+    DATA(lv_style_h) = lo_style_h->get_guid( ). "benzersiz kimliğini al
+
+    " Bilgi stili (kalın)
+    DATA(lo_style_b) = lo_excel->add_new_style( ).
+    lo_style_b->font->bold = abap_true.
+    DATA(lv_style_b) = lo_style_b->get_guid( ).
+
+    "Satırlar
+    DATA: lv_row TYPE i VALUE 1.
+
+    " Sadece ilk belgede başlık
+    lo_worksheet->set_cell( ip_row = lv_row ip_column = 1 ip_value = 'ORDER CONFIRMATION' ).
+
+    "(A1:G1)
+    lo_worksheet->set_merge(
+      ip_column_start = 1
+      ip_column_end   = 5
+      ip_row          = lv_row
+      ip_row_to       = lv_row  ).
+
+    " Büyük font ve ortalama stili
+    DATA(lo_style_title) = lo_excel->add_new_style( ).
+    lo_style_title->font->bold = abap_true.
+    lo_style_title->font->size = 16.
+    lo_style_title->alignment->horizontal = zcl_excel_style_alignment=>c_horizontal_center.
+    lo_worksheet->set_cell_style( ip_row = lv_row ip_column = 1 ip_style = lo_style_title->get_guid( ) ).
+
+    " MIME'den logo
+    lv_mime_url = '/sap/public/fiks.jpg'.
+
+    CALL METHOD cl_mime_repository_api=>get_api( )->get(
+      EXPORTING
+        i_url                  = lv_mime_url              " Object URL
+      IMPORTING
+        e_content              = lv_logo_data                  " Object Contents
+      EXCEPTIONS
+        parameter_missing      = 1                " Parameter missing or is initial
+        error_occured          = 2                " Unspecified Error Occurred
+        not_found              = 3                " Object not found
+        permission_failure     = 4                " Missing Authorization
+        OTHERS                 = 5
+    ).
+
+    " Logo  - MIME Repository'den
+    IF lv_logo_data IS NOT INITIAL.
+      DATA(lo_drawing) = lo_excel->add_new_drawing( ). ""çizim (drawing) nesnesi
+      lo_drawing->set_media(
+        ip_media      = lv_logo_data
+        ip_media_type = 'JPG'
+        ip_width      = 180
+        ip_height     = 180
+      ).
+      lo_drawing->set_position( "nerede duracağı
+        ip_from_row    = lv_row
+        ip_from_col    = 'F' "sütun harfi
+        ip_rowoff = 0 "offsetler
+        ip_coloff = 60 ).
+
+      lo_worksheet->add_drawing( lo_drawing ).
+    ENDIF.
+
+    lv_row += 6.
+
+    " Sayısal alanlar için stil
+    DATA(lo_style_num) = lo_excel->add_new_style( ).
+    lo_style_num->number_format->format_code = '#,##0.00'.
+    DATA(lv_style_num) = lo_style_num->get_guid( ).
+
+    "kalem no için
+    DATA(lo_style_kalem) = lo_excel->add_new_style( ).
+    lo_style_kalem->alignment->horizontal = zcl_excel_style_alignment=>c_horizontal_right.
+    DATA(lv_style_kalem) = lo_style_kalem->get_guid( ).
+
+    LOOP AT lt_keys INTO DATA(ls_key).
+      CLEAR: gs_header, gt_sf, gs_toplam.
+
+      READ TABLE gt_header INTO gs_header WITH KEY vbeln = ls_key.
+
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = 1 ip_value = 'Purchase Order No:' ).
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = 2 ip_value = gs_header-bstnk ).
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = 4 ip_value = 'Prof.Invoice No:' ).
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = 5 ip_value = gs_header-vbeln ).
+      lv_row += 1.
+
+      " Date satırı
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = 1 ip_value = 'Date:' ).
+      IF gs_header-bstdk IS NOT INITIAL AND gs_header-bstdk <> '00000000'.
+        lo_worksheet->set_cell( ip_row = lv_row ip_column = 2
+          ip_value = |{ gs_header-bstdk DATE = USER }| ).
+      ENDIF.
+
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = 4 ip_value = 'Delivery Date:' ).
+      IF gs_header-vdatu IS NOT INITIAL AND gs_header-vdatu <> '00000000'.
+        lo_worksheet->set_cell( ip_row = lv_row ip_column = 5
+          ip_value = |{ gs_header-vdatu DATE = USER }| ).
+      ENDIF.
+
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = 1 ip_value = 'Müşteri Adı:' ).
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = 2 ip_value = gs_header-name1 ).
+      lv_row += 1.
+
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = 1 ip_value = 'Adres:' ).
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = 2 ip_value = gs_header-street ).
+      lv_row += 2.
+
+      " Tablo başlıkları
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = 1 ip_value = 'Kalem' ).
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = 2 ip_value = 'Müşteri Malzemesi' ).
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = 3 ip_value = 'Malzeme' ).
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = 4 ip_value = 'Malzeme Kısa Metni' ).
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = 5 ip_value = 'Sipariş Miktarı' ).
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = 6 ip_value = 'Tutar' ).
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = 7 ip_value = 'Net Değer' ).
+
+      DO 7 TIMES.
+        lo_worksheet->set_cell_style( ip_row = lv_row ip_column = sy-index ip_style = lv_style_h ).
+      ENDDO.
+      lv_row += 1.
+
+      " Kalem verileri
+      LOOP AT gt_alv INTO DATA(ls_all) WHERE vbeln = ls_key.
+        gs_toplam-toplam_netwr += ls_all-netwr.
+
+        lo_worksheet->set_cell( ip_row = lv_row ip_column = 1 ip_value = |{ ls_all-posnr ALPHA = OUT }| ).
+        lo_worksheet->set_cell_style( ip_row = lv_row ip_column = 1 ip_style = lv_style_kalem ).
+        lo_worksheet->set_cell( ip_row = lv_row ip_column = 2 ip_value = ls_all-kdmat ).
+        lo_worksheet->set_cell( ip_row = lv_row ip_column = 3 ip_value = ls_all-matnr ).
+        lo_worksheet->set_cell( ip_row = lv_row ip_column = 4 ip_value = ls_all-maktx ).
+        "style
+        lo_worksheet->set_cell( ip_row = lv_row ip_column = 5 ip_value = ls_all-kwmeng ).
+        lo_worksheet->set_cell_style( ip_row = lv_row ip_column = 5 ip_style = lv_style_num ).
+
+        lo_worksheet->set_cell( ip_row = lv_row ip_column = 6 ip_value = ls_all-kbetr ).
+        lo_worksheet->set_cell_style( ip_row = lv_row ip_column = 6 ip_style = lv_style_num ).
+
+        lo_worksheet->set_cell( ip_row = lv_row ip_column = 7 ip_value = ls_all-netwr ).
+        lo_worksheet->set_cell_style( ip_row = lv_row ip_column = 7 ip_style = lv_style_num ).
+        lv_row += 1.
+      ENDLOOP.
+
+      " Toplam
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = 6 ip_value = 'Toplam Amount:' ).
+      lo_worksheet->set_cell_style( ip_row = lv_row ip_column = 6 ip_style = lv_style_b ).
+
+      lo_worksheet->set_cell( ip_row = lv_row ip_column = 7 ip_value = gs_toplam-toplam_netwr ).
+      lo_worksheet->set_cell_style( ip_row = lv_row ip_column = 7 ip_style = lv_style_num ).
+      lv_row += 6.
+    ENDLOOP.
+
+    lo_worksheet->set_column_width( ip_column = 1 ip_width_fix = 20 ).
+    lo_worksheet->set_column_width( ip_column = 2 ip_width_fix = 20 ).
+    lo_worksheet->set_column_width( ip_column = 3 ip_width_fix = 15 ).
+    lo_worksheet->set_column_width( ip_column = 4 ip_width_fix = 22 ).
+    lo_worksheet->set_column_width( ip_column = 5 ip_width_fix = 18 ).
+    lo_worksheet->set_column_width( ip_column = 6 ip_width_fix = 15 ).
+    lo_worksheet->set_column_width( ip_column = 7 ip_width_fix = 15 ).
+    "optimize büyüklük
+*    lo_worksheet->calculate_column_widths( ).
+
+    " İndir
+    DATA(lo_writer) = CAST zif_excel_writer( NEW zcl_excel_writer_2007( ) ). "yazıcı nesnesini
+    DATA(lv_xstring) = lo_writer->write_file( lo_excel ). "tek parça,stiller veriler vs
+
+    CALL FUNCTION 'SCMS_XSTRING_TO_BINARY'
+      EXPORTING
+        buffer        = lv_xstring
+      IMPORTING
+        output_length = lv_size
+      TABLES
+        binary_tab    = lt_solix.
+
+    CALL FUNCTION 'GUI_DOWNLOAD'
+      EXPORTING
+        bin_filesize = lv_size
+        filename     = gv_fullpath
+        filetype     = 'BIN'
+      TABLES
+        data_tab     = lt_solix
+      EXCEPTIONS
+        OTHERS       = 1.
+
+    IF sy-subrc = 0.
+      MESSAGE 'Excel çıktısı indirildi.' TYPE 'S'.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD handle_toolbar. "toolbar button ekleme
+    DATA: ls_toolbar TYPE stb_button.
+
+    CLEAR: ls_toolbar.
+
+    ls_toolbar-function = 'ADOBE_PRINT'.
+    ls_toolbar-icon = '@03@'.
+    ls_toolbar-quickinfo = 'Adobe Form Bas'.
+
+    APPEND ls_toolbar TO e_object->mt_toolbar.
+
+    CLEAR: ls_toolbar.
+
+    ls_toolbar-function = 'EXCELD'.
+    ls_toolbar-icon = '@2S@'.
+    ls_toolbar-quickinfo = 'Excel Indir'.
+
+    APPEND ls_toolbar TO e_object->mt_toolbar.
+
+    CLEAR: ls_toolbar.
+
+    ls_toolbar-function  = 'SEND_MAIL'.
+    ls_toolbar-icon      = '@1S@'.
+    ls_toolbar-quickinfo = 'Mail Gönder'.
+
+    APPEND ls_toolbar TO e_object->mt_toolbar.
+
+
+    CLEAR: ls_toolbar.
+
+    ls_toolbar-function  = 'SEND_ML_HTML'.
+    ls_toolbar-icon      = '@0T@'.
+    ls_toolbar-quickinfo = 'Mail Gönder (HTML)'.
+
+    APPEND ls_toolbar TO e_object->mt_toolbar.
+
+    CLEAR: ls_toolbar.
+    ls_toolbar-function  = 'SEND_ML_PDF'.
+    ls_toolbar-icon      = '@0J@'.
+    ls_toolbar-quickinfo = 'Mail Gönder (PDF)'.
+    APPEND ls_toolbar TO e_object->mt_toolbar.
+
+    CLEAR: ls_toolbar.
+    ls_toolbar-function  = 'EXCEL_CIKTI'.
+    ls_toolbar-icon      = '@22@'.
+    ls_toolbar-quickinfo = 'Excel Çıktı(abap2xlsx)'.
+    APPEND ls_toolbar TO e_object->mt_toolbar.
+
+    CLEAR: ls_toolbar.
+    ls_toolbar-function  = 'EXCEL_ADOBE'.
+    ls_toolbar-icon      = '@49@'.
+    ls_toolbar-quickinfo = 'Adobe -> Excel Çıktı'.
+    APPEND ls_toolbar TO e_object->mt_toolbar.
+  ENDMETHOD.
+
+
+  METHOD handle_user_command.
+    DATA: lt_rows TYPE lvc_t_row,
+          ls_row  TYPE lvc_s_row.
+    DATA: lv_subject   TYPE so_obj_des.
+
+    CALL METHOD go_alv->check_changed_data.
+
+    CLEAR lt_keys.
+
+    LOOP AT gt_alv INTO gs_alv WHERE selkz = 'X'.
+      APPEND gs_alv-vbeln TO lt_keys.
+    ENDLOOP.
+
+    "SORT lt_keys.
+    DELETE ADJACENT DUPLICATES FROM lt_keys.
+
+    CASE e_ucomm.
+      WHEN 'ADOBE_PRINT'.
+        IF lt_keys IS NOT INITIAL.
+          me->get_adobeform( ).
+        ELSE.
+          MESSAGE 'Lütfen satır seçiniz.' TYPE 'I'.
+        ENDIF.
+
+      WHEN 'EXCELD'.
+        DATA: lr_data_ref TYPE REF TO data.
+
+        IF  me->gv_rb = '1'.
+          GET REFERENCE OF gt_alv INTO lr_data_ref.
+
+          me->get_excell(
+         EXPORTING
+          it_data     = lr_data_ref " importinge gönder,Metodun içine veri gönderiyorum
+          it_fcat     = gt_fcat ).
+
+        ELSE.
+          GET REFERENCE OF gt_alvv INTO lr_data_ref.
+
+          me->get_excell(
+          EXPORTING
+           it_data     = lr_data_ref " importinge gönder,Metodun içine veri gönderiyorum
+           it_fcat     = gt_fcatt
+        ).
+        ENDIF.
+
+      WHEN 'SEND_MAIL'.
+        " Tablodan alıcıları oku
+        SELECT smtp_addr, cc
+          FROM zgz_mail_list
+          INTO CORRESPONDING FIELDS OF TABLE @gt_mail.
+
+        IF gt_mail IS INITIAL.
+          MESSAGE 'Aktif alıcı bulunamadı.' TYPE 'S' DISPLAY LIKE 'E'.
+          RETURN.
+        ENDIF.
+
+        " Hepsini seçili yap
+        LOOP AT gt_mail ASSIGNING FIELD-SYMBOL(<fs_m>).
+          <fs_m>-cc = 'X'.
+        ENDLOOP.
+
+        " Popup aç
+        gv_mail_confirmed = abap_false.
+        CALL SCREEN 0200 STARTING AT 5 5 ENDING AT 100 20. "soldan sağa
+
+        " Onaylandıysa gönder
+        IF gv_mail_confirmed = abap_true.
+
+          lv_subject = 'Sipariş Raporu - ' && sy-datum.
+
+          me->send_mail( iv_subject  = lv_subject ).
+        ENDIF.
+
+      WHEN 'SEND_ML_HTML'.
+        DATA: lv_receiver TYPE ad_smtpadr.
+
+        CALL FUNCTION 'POPUP_TO_GET_VALUE'
+          EXPORTING
+            tabname             = 'ADR6'
+            fieldname           = 'SMTP_ADDR'
+            titel               = 'Mail Gönder'
+            valuein             = ''
+          IMPORTING
+*           ANSWER              =
+            valueout            = lv_receiver
+          EXCEPTIONS
+            fieldname_not_found = 1
+            OTHERS              = 2.
+
+        lv_subject = 'Sipariş Raporu - ' && sy-datum.
+
+        me->send_mail_html(  EXPORTING
+           iv_subject = lv_subject
+           iv_receiver = lv_receiver ).
+
+      WHEN 'SEND_ML_PDF'.
+        IF lt_keys IS INITIAL.
+          MESSAGE 'Lütfen satır seçiniz.' TYPE 'I'.
+          RETURN.
+        ENDIF.
+
+        DATA: lv_receiver_pdf TYPE ad_smtpadr.
+
+        CALL FUNCTION 'POPUP_TO_GET_VALUE'
+          EXPORTING
+            tabname   = 'ADR6'
+            fieldname = 'SMTP_ADDR'
+            titel     = 'PDF Mail Gönder'
+            valuein   = ''
+          IMPORTING
+            valueout  = lv_receiver_pdf
+          EXCEPTIONS
+            OTHERS    = 2.
+
+        IF lv_receiver_pdf IS NOT INITIAL.
+          me->get_adobeform(
+            iv_mail     = abap_true
+            iv_subject  = CONV #( 'Sipariş Raporu - ' && sy-datum )
+            iv_receiver = lv_receiver_pdf ).
+        ENDIF.
+
+      WHEN 'EXCEL_CIKTI'.
+        IF me->gv_rb = '1'.
+          GET REFERENCE OF gt_alv INTO lr_data_ref.
+          me->get_excel_abap2xlsx( it_data = lr_data_ref it_fcat = gt_fcat ).
+        ELSE.
+          GET REFERENCE OF gt_alvv INTO lr_data_ref.
+          me->get_excel_abap2xlsx( it_data = lr_data_ref it_fcat = gt_fcatt ).
+        ENDIF.
+
+      WHEN 'EXCEL_ADOBE'.
+        me->get_excel_from_adobe( ).
+    ENDCASE.
+  ENDMETHOD.
 ENDCLASS.

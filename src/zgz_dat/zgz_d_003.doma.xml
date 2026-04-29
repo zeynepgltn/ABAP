@@ -8,7 +8,7 @@
     <DATATYPE>CHAR</DATATYPE>
     <LENG>000050</LENG>
     <OUTPUTLEN>000050</OUTPUTLEN>
-    <DDTEXT>Öğrenci Soyad</DDTEXT>
+    <DDTEXT> Soyad</DDTEXT>
    </DD01V>
   </asx:values>
  </asx:abap>

@@ -18,8 +18,8 @@
       <DESCRIPT>ilk screen</DESCRIPT>
       <TYPE>N</TYPE>
       <NEXTSCREEN>0100</NEXTSCREEN>
-      <LINES>027</LINES>
-      <COLUMNS>125</COLUMNS>
+      <LINES>021</LINES>
+      <COLUMNS>118</COLUMNS>
      </HEADER>
      <CONTAINERS>
       <RPY_DYCATT>
@@ -27,11 +27,42 @@
        <NAME>SCREEN</NAME>
       </RPY_DYCATT>
       <RPY_DYCATT>
+       <TYPE>STRIP_CTRL</TYPE>
+       <NAME>TB_ID</NAME>
+       <ELEMENT_OF>SCREEN</ELEMENT_OF>
+       <LINE>002</LINE>
+       <COLUMN>054</COLUMN>
+       <LENGTH>057</LENGTH>
+       <HEIGHT>019</HEIGHT>
+      </RPY_DYCATT>
+      <RPY_DYCATT>
+       <TYPE>SUBSCREEN</TYPE>
+       <NAME>SUB1</NAME>
+       <ELEMENT_OF>TB_ID</ELEMENT_OF>
+       <LINE>004</LINE>
+       <COLUMN>055</COLUMN>
+       <LENGTH>055</LENGTH>
+       <HEIGHT>015</HEIGHT>
+       <C_SCROLL_V>X</C_SCROLL_V>
+       <C_SCROLL_H>X</C_SCROLL_H>
+      </RPY_DYCATT>
+      <RPY_DYCATT>
+       <TYPE>SUBSCREEN</TYPE>
+       <NAME>SUB2</NAME>
+       <ELEMENT_OF>TB_ID</ELEMENT_OF>
+       <LINE>004</LINE>
+       <COLUMN>055</COLUMN>
+       <LENGTH>054</LENGTH>
+       <HEIGHT>015</HEIGHT>
+       <C_SCROLL_V>X</C_SCROLL_V>
+       <C_SCROLL_H>X</C_SCROLL_H>
+      </RPY_DYCATT>
+      <RPY_DYCATT>
        <TYPE>RADIOGROUP</TYPE>
        <NAME>%A_GV_RAD1</NAME>
        <ELEMENT_OF>SCREEN</ELEMENT_OF>
-       <LINE>006</LINE>
-       <COLUMN>023</COLUMN>
+       <LINE>010</LINE>
+       <COLUMN>028</COLUMN>
        <LENGTH>007</LENGTH>
        <HEIGHT>002</HEIGHT>
       </RPY_DYCATT>
@@ -40,13 +71,56 @@
       <RPY_DYFATC>
        <CONT_TYPE>SCREEN</CONT_TYPE>
        <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>FRAME</TYPE>
+       <NAME>BOX1</NAME>
+       <TEXT>Kişisel_Veriler_______________________________</TEXT>
+       <LINE>002</LINE>
+       <COLUMN>003</COLUMN>
+       <LENGTH>047</LENGTH>
+       <VISLENGTH>047</VISLENGTH>
+       <HEIGHT>019</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>DINAMIK</NAME>
+       <TEXT>Input_field_sayısı</TEXT>
+       <LINE>004</LINE>
+       <COLUMN>011</COLUMN>
+       <LENGTH>018</LENGTH>
+       <VISLENGTH>018</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEMPLATE</TYPE>
+       <NAME>GV_NUM</NAME>
+       <TEXT>_______</TEXT>
+       <LINE>004</LINE>
+       <COLUMN>031</COLUMN>
+       <LENGTH>007</LENGTH>
+       <VISLENGTH>007</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>INT4</FORMAT>
+       <INPUT_FLD>X</INPUT_FLD>
+       <OUTPUT_FLD>X</OUTPUT_FLD>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
        <TYPE>TEXT</TYPE>
        <NAME>AD</NAME>
        <TEXT>Ad______</TEXT>
        <ICON_NAME>ICON_TOTAL_UP</ICON_NAME>
        <WITH_ICON>X</WITH_ICON>
-       <LINE>002</LINE>
-       <COLUMN>007</COLUMN>
+       <LINE>006</LINE>
+       <COLUMN>012</COLUMN>
        <LENGTH>013</LENGTH>
        <VISLENGTH>012</VISLENGTH>
        <HEIGHT>001</HEIGHT>
@@ -59,10 +133,10 @@
        <CONT_TYPE>SCREEN</CONT_TYPE>
        <CONT_NAME>SCREEN</CONT_NAME>
        <TYPE>TEXT</TYPE>
-       <NAME>%#AUTOTEXT001</NAME>
+       <NAME>%#AUTOTEXT003</NAME>
        <TEXT>:</TEXT>
-       <LINE>002</LINE>
-       <COLUMN>020</COLUMN>
+       <LINE>006</LINE>
+       <COLUMN>025</COLUMN>
        <LENGTH>001</LENGTH>
        <VISLENGTH>001</VISLENGTH>
        <HEIGHT>001</HEIGHT>
@@ -74,12 +148,14 @@
        <CONT_NAME>SCREEN</CONT_NAME>
        <TYPE>TEMPLATE</TYPE>
        <NAME>GV_AD</NAME>
-       <TEXT>_________________</TEXT>
-       <LINE>002</LINE>
-       <COLUMN>023</COLUMN>
-       <LENGTH>017</LENGTH>
-       <VISLENGTH>017</VISLENGTH>
+       <TEXT>__________</TEXT>
+       <LINE>006</LINE>
+       <COLUMN>028</COLUMN>
+       <LENGTH>010</LENGTH>
+       <VISLENGTH>010</VISLENGTH>
        <HEIGHT>001</HEIGHT>
+       <GROUP1>X</GROUP1>
+       <GROUP2>X</GROUP2>
        <FORMAT>CHAR</FORMAT>
        <INPUT_FLD>X</INPUT_FLD>
        <OUTPUT_FLD>X</OUTPUT_FLD>
@@ -90,81 +166,8 @@
        <TYPE>TEXT</TYPE>
        <NAME>SOYAD</NAME>
        <TEXT>Soyad_______</TEXT>
-       <LINE>003</LINE>
-       <COLUMN>007</COLUMN>
-       <LENGTH>012</LENGTH>
-       <VISLENGTH>012</VISLENGTH>
-       <HEIGHT>001</HEIGHT>
-       <FORMAT>CHAR</FORMAT>
-       <REQU_ENTRY>N</REQU_ENTRY>
-       <LABELLEFT>X</LABELLEFT>
-      </RPY_DYFATC>
-      <RPY_DYFATC>
-       <CONT_TYPE>SCREEN</CONT_TYPE>
-       <CONT_NAME>SCREEN</CONT_NAME>
-       <TYPE>TEXT</TYPE>
-       <NAME>%#AUTOTEXT002</NAME>
-       <TEXT>:</TEXT>
-       <LINE>003</LINE>
-       <COLUMN>020</COLUMN>
-       <LENGTH>001</LENGTH>
-       <VISLENGTH>001</VISLENGTH>
-       <HEIGHT>001</HEIGHT>
-       <FORMAT>CHAR</FORMAT>
-       <REQU_ENTRY>N</REQU_ENTRY>
-      </RPY_DYFATC>
-      <RPY_DYFATC>
-       <CONT_TYPE>SCREEN</CONT_TYPE>
-       <CONT_NAME>SCREEN</CONT_NAME>
-       <TYPE>TEMPLATE</TYPE>
-       <NAME>GV_SOYAD</NAME>
-       <TEXT>_________________</TEXT>
-       <LINE>003</LINE>
-       <COLUMN>023</COLUMN>
-       <LENGTH>017</LENGTH>
-       <VISLENGTH>017</VISLENGTH>
-       <HEIGHT>001</HEIGHT>
-       <FORMAT>CHAR</FORMAT>
-       <INPUT_FLD>X</INPUT_FLD>
-       <OUTPUT_FLD>X</OUTPUT_FLD>
-      </RPY_DYFATC>
-      <RPY_DYFATC>
-       <CONT_TYPE>SCREEN</CONT_TYPE>
-       <CONT_NAME>SCREEN</CONT_NAME>
-       <TYPE>TEXT</TYPE>
-       <NAME>DTARIHI</NAME>
-       <TEXT>Doğum_Tarihi</TEXT>
-       <LINE>004</LINE>
-       <COLUMN>007</COLUMN>
-       <LENGTH>012</LENGTH>
-       <VISLENGTH>012</VISLENGTH>
-       <HEIGHT>001</HEIGHT>
-       <FORMAT>CHAR</FORMAT>
-       <REQU_ENTRY>N</REQU_ENTRY>
-       <LABELLEFT>X</LABELLEFT>
-      </RPY_DYFATC>
-      <RPY_DYFATC>
-       <CONT_TYPE>SCREEN</CONT_TYPE>
-       <CONT_NAME>SCREEN</CONT_NAME>
-       <TYPE>TEXT</TYPE>
-       <NAME>%#AUTOTEXT003</NAME>
-       <TEXT>:</TEXT>
-       <LINE>004</LINE>
-       <COLUMN>020</COLUMN>
-       <LENGTH>001</LENGTH>
-       <VISLENGTH>001</VISLENGTH>
-       <HEIGHT>001</HEIGHT>
-       <FORMAT>CHAR</FORMAT>
-       <REQU_ENTRY>N</REQU_ENTRY>
-      </RPY_DYFATC>
-      <RPY_DYFATC>
-       <CONT_TYPE>SCREEN</CONT_TYPE>
-       <CONT_NAME>SCREEN</CONT_NAME>
-       <TYPE>TEXT</TYPE>
-       <NAME>YAS</NAME>
-       <TEXT>Yaş_________</TEXT>
-       <LINE>005</LINE>
-       <COLUMN>007</COLUMN>
+       <LINE>007</LINE>
+       <COLUMN>012</COLUMN>
        <LENGTH>012</LENGTH>
        <VISLENGTH>012</VISLENGTH>
        <HEIGHT>001</HEIGHT>
@@ -178,8 +181,8 @@
        <TYPE>TEXT</TYPE>
        <NAME>%#AUTOTEXT004</NAME>
        <TEXT>:</TEXT>
-       <LINE>005</LINE>
-       <COLUMN>020</COLUMN>
+       <LINE>007</LINE>
+       <COLUMN>025</COLUMN>
        <LENGTH>001</LENGTH>
        <VISLENGTH>001</VISLENGTH>
        <HEIGHT>001</HEIGHT>
@@ -189,11 +192,120 @@
       <RPY_DYFATC>
        <CONT_TYPE>SCREEN</CONT_TYPE>
        <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEMPLATE</TYPE>
+       <NAME>GV_SOYAD</NAME>
+       <TEXT>__________</TEXT>
+       <LINE>007</LINE>
+       <COLUMN>028</COLUMN>
+       <LENGTH>010</LENGTH>
+       <VISLENGTH>010</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <GROUP1>X</GROUP1>
+       <GROUP2>X</GROUP2>
+       <FORMAT>CHAR</FORMAT>
+       <INPUT_FLD>X</INPUT_FLD>
+       <OUTPUT_FLD>X</OUTPUT_FLD>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>DTARIHI</NAME>
+       <TEXT>Doğum_Tarihi</TEXT>
+       <LINE>008</LINE>
+       <COLUMN>012</COLUMN>
+       <LENGTH>012</LENGTH>
+       <VISLENGTH>012</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+       <LABELLEFT>X</LABELLEFT>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT005</NAME>
+       <TEXT>:</TEXT>
+       <LINE>008</LINE>
+       <COLUMN>025</COLUMN>
+       <LENGTH>001</LENGTH>
+       <VISLENGTH>001</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEMPLATE</TYPE>
+       <NAME>GV_DATE</NAME>
+       <TEXT>__________</TEXT>
+       <LINE>008</LINE>
+       <COLUMN>028</COLUMN>
+       <LENGTH>010</LENGTH>
+       <VISLENGTH>010</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <GROUP2>X</GROUP2>
+       <FORMAT>DATS</FORMAT>
+       <INPUT_FLD>X</INPUT_FLD>
+       <OUTPUT_FLD>X</OUTPUT_FLD>
+       <MATCHCODE>SRM_F4_DATUM</MATCHCODE>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>YAS</NAME>
+       <TEXT>Yaş_________</TEXT>
+       <LINE>009</LINE>
+       <COLUMN>012</COLUMN>
+       <LENGTH>012</LENGTH>
+       <VISLENGTH>012</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+       <LABELLEFT>X</LABELLEFT>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT006</NAME>
+       <TEXT>:</TEXT>
+       <LINE>009</LINE>
+       <COLUMN>025</COLUMN>
+       <LENGTH>001</LENGTH>
+       <VISLENGTH>001</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEMPLATE</TYPE>
+       <NAME>GV_YAS</NAME>
+       <TEXT>__________</TEXT>
+       <DROPDOWN>K</DROPDOWN>
+       <LINE>009</LINE>
+       <COLUMN>027</COLUMN>
+       <LENGTH>010</LENGTH>
+       <VISLENGTH>012</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <PUSH_FCODE>&amp;DROP</PUSH_FCODE>
+       <FORMAT>INT4</FORMAT>
+       <INPUT_FLD>X</INPUT_FLD>
+       <OUTPUT_FLD>X</OUTPUT_FLD>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
        <TYPE>TEXT</TYPE>
        <NAME>CINS</NAME>
        <TEXT>Cinsiyet____</TEXT>
-       <LINE>006</LINE>
-       <COLUMN>007</COLUMN>
+       <LINE>010</LINE>
+       <COLUMN>012</COLUMN>
        <LENGTH>012</LENGTH>
        <VISLENGTH>012</VISLENGTH>
        <HEIGHT>001</HEIGHT>
@@ -205,10 +317,10 @@
        <CONT_TYPE>SCREEN</CONT_TYPE>
        <CONT_NAME>SCREEN</CONT_NAME>
        <TYPE>TEXT</TYPE>
-       <NAME>%#AUTOTEXT005</NAME>
+       <NAME>%#AUTOTEXT007</NAME>
        <TEXT>:</TEXT>
-       <LINE>006</LINE>
-       <COLUMN>020</COLUMN>
+       <LINE>010</LINE>
+       <COLUMN>025</COLUMN>
        <LENGTH>001</LENGTH>
        <VISLENGTH>001</VISLENGTH>
        <HEIGHT>001</HEIGHT>
@@ -221,10 +333,314 @@
        <TYPE>CHECK</TYPE>
        <NAME>GV_CBOX</NAME>
        <TEXT>Okudum,Onaylıyorum.</TEXT>
-       <LINE>010</LINE>
-       <COLUMN>007</COLUMN>
+       <LINE>013</LINE>
+       <COLUMN>016</COLUMN>
        <LENGTH>021</LENGTH>
        <VISLENGTH>021</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <INPUT_FLD>X</INPUT_FLD>
+       <OUTPUT_FLD>X</OUTPUT_FLD>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>PUSH</TYPE>
+       <NAME>%#AUTOTEXT001</NAME>
+       <TEXT>Temizle_</TEXT>
+       <ICON_NAME>ICON_CREATE</ICON_NAME>
+       <WITH_ICON>X</WITH_ICON>
+       <LINE>015</LINE>
+       <COLUMN>012</COLUMN>
+       <LENGTH>013</LENGTH>
+       <VISLENGTH>011</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <PUSH_FCODE>&amp;CLEAR</PUSH_FCODE>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>PUSH</TYPE>
+       <NAME>%#AUTOTEXT002</NAME>
+       <TEXT>Kaydet_</TEXT>
+       <ICON_NAME>ICON_SYSTEM_SAVE</ICON_NAME>
+       <WITH_ICON>X</WITH_ICON>
+       <LINE>015</LINE>
+       <COLUMN>028</COLUMN>
+       <LENGTH>012</LENGTH>
+       <VISLENGTH>010</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <PUSH_FCODE>&amp;SAVE</PUSH_FCODE>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>PUSH</TYPE>
+       <NAME>ENABLE</NAME>
+       <TEXT>Enable__</TEXT>
+       <LINE>017</LINE>
+       <COLUMN>013</COLUMN>
+       <LENGTH>008</LENGTH>
+       <VISLENGTH>008</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <PUSH_FCODE>&amp;ENABLE</PUSH_FCODE>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>PUSH</TYPE>
+       <NAME>DISABLE</NAME>
+       <TEXT>Disable_</TEXT>
+       <LINE>017</LINE>
+       <COLUMN>029</COLUMN>
+       <LENGTH>008</LENGTH>
+       <VISLENGTH>008</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <PUSH_FCODE>&amp;DISABLE</PUSH_FCODE>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>OKCODE</TYPE>
+       <NAME>OK_CODE</NAME>
+       <TEXT>____________________</TEXT>
+       <LENGTH>020</LENGTH>
+       <VISLENGTH>020</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <INPUT_FLD>X</INPUT_FLD>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>STRIP_CTRL</CONT_TYPE>
+       <CONT_NAME>TB_ID</CONT_NAME>
+       <TYPE>PUSH</TYPE>
+       <NAME>TB1</NAME>
+       <TEXT>Tab1</TEXT>
+       <LINE>001</LINE>
+       <COLUMN>001</COLUMN>
+       <LENGTH>004</LENGTH>
+       <VISLENGTH>004</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <PUSH_FCODE>&amp;TAB1</PUSH_FCODE>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+       <REF_FIELD>SUB1</REF_FIELD>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>STRIP_CTRL</CONT_TYPE>
+       <CONT_NAME>TB_ID</CONT_NAME>
+       <TYPE>PUSH</TYPE>
+       <NAME>TB2</NAME>
+       <TEXT>Tab2</TEXT>
+       <LINE>001</LINE>
+       <COLUMN>002</COLUMN>
+       <LENGTH>004</LENGTH>
+       <VISLENGTH>004</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <PUSH_FCODE>&amp;TAB2</PUSH_FCODE>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+       <REF_FIELD>SUB2</REF_FIELD>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>RADIOGROUP</CONT_TYPE>
+       <CONT_NAME>%A_GV_RAD1</CONT_NAME>
+       <TYPE>RADIO</TYPE>
+       <NAME>GV_RAD1</NAME>
+       <TEXT>Kadın</TEXT>
+       <LINE>010</LINE>
+       <COLUMN>028</COLUMN>
+       <LENGTH>007</LENGTH>
+       <VISLENGTH>007</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <INPUT_FLD>X</INPUT_FLD>
+       <OUTPUT_FLD>X</OUTPUT_FLD>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>RADIOGROUP</CONT_TYPE>
+       <CONT_NAME>%A_GV_RAD1</CONT_NAME>
+       <TYPE>RADIO</TYPE>
+       <NAME>GV_RAD2</NAME>
+       <TEXT>Erkek</TEXT>
+       <LINE>011</LINE>
+       <COLUMN>028</COLUMN>
+       <LENGTH>007</LENGTH>
+       <VISLENGTH>007</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <INPUT_FLD>X</INPUT_FLD>
+       <OUTPUT_FLD>X</OUTPUT_FLD>
+      </RPY_DYFATC>
+     </FIELDS>
+    </item>
+    <item>
+     <HEADER>
+      <PROGRAM>ZGZ_SCREEN_001</PROGRAM>
+      <SCREEN>0101</SCREEN>
+      <LANGUAGE>T</LANGUAGE>
+      <DESCRIPT>sub1</DESCRIPT>
+      <TYPE>I</TYPE>
+      <NEXTSCREEN>0101</NEXTSCREEN>
+      <LINES>027</LINES>
+      <COLUMNS>123</COLUMNS>
+     </HEADER>
+     <CONTAINERS>
+      <RPY_DYCATT>
+       <TYPE>SCREEN</TYPE>
+       <NAME>SCREEN</NAME>
+      </RPY_DYCATT>
+     </CONTAINERS>
+     <FIELDS>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>FRAME</TYPE>
+       <NAME>%#AUTOTEXT004</NAME>
+       <TEXT>Uçak_Bilgileri________________________</TEXT>
+       <LINE>002</LINE>
+       <COLUMN>003</COLUMN>
+       <LENGTH>039</LENGTH>
+       <VISLENGTH>039</VISLENGTH>
+       <HEIGHT>009</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT001</NAME>
+       <TEXT>Fiyat</TEXT>
+       <LINE>005</LINE>
+       <COLUMN>008</COLUMN>
+       <LENGTH>005</LENGTH>
+       <VISLENGTH>005</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT005</NAME>
+       <TEXT>:</TEXT>
+       <LINE>005</LINE>
+       <COLUMN>020</COLUMN>
+       <LENGTH>001</LENGTH>
+       <VISLENGTH>001</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+       <LABELLEFT>X</LABELLEFT>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEMPLATE</TYPE>
+       <NAME>GS_SFLIGHT-PRICE</NAME>
+       <TEXT>__________</TEXT>
+       <LINE>005</LINE>
+       <COLUMN>022</COLUMN>
+       <LENGTH>010</LENGTH>
+       <VISLENGTH>010</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>DEC</FORMAT>
+       <INPUT_FLD>X</INPUT_FLD>
+       <OUTPUT_FLD>X</OUTPUT_FLD>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT002</NAME>
+       <TEXT>Para_Birimi</TEXT>
+       <LINE>006</LINE>
+       <COLUMN>008</COLUMN>
+       <LENGTH>011</LENGTH>
+       <VISLENGTH>011</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT006</NAME>
+       <TEXT>:</TEXT>
+       <LINE>006</LINE>
+       <COLUMN>020</COLUMN>
+       <LENGTH>001</LENGTH>
+       <VISLENGTH>001</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+       <LABELLEFT>X</LABELLEFT>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEMPLATE</TYPE>
+       <NAME>GS_SFLIGHT-CURRENCY</NAME>
+       <TEXT>_____</TEXT>
+       <LINE>006</LINE>
+       <COLUMN>022</COLUMN>
+       <LENGTH>005</LENGTH>
+       <VISLENGTH>005</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <INPUT_FLD>X</INPUT_FLD>
+       <OUTPUT_FLD>X</OUTPUT_FLD>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT003</NAME>
+       <TEXT>Uçak_Tipi</TEXT>
+       <LINE>007</LINE>
+       <COLUMN>008</COLUMN>
+       <LENGTH>009</LENGTH>
+       <VISLENGTH>009</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT007</NAME>
+       <TEXT>:</TEXT>
+       <LINE>007</LINE>
+       <COLUMN>020</COLUMN>
+       <LENGTH>001</LENGTH>
+       <VISLENGTH>001</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+       <LABELLEFT>X</LABELLEFT>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEMPLATE</TYPE>
+       <NAME>GS_SFLIGHT-PLANETYPE</NAME>
+       <TEXT>__________</TEXT>
+       <LINE>007</LINE>
+       <COLUMN>022</COLUMN>
+       <LENGTH>010</LENGTH>
+       <VISLENGTH>010</VISLENGTH>
        <HEIGHT>001</HEIGHT>
        <FORMAT>CHAR</FORMAT>
        <INPUT_FLD>X</INPUT_FLD>
@@ -241,35 +657,359 @@
        <FORMAT>CHAR</FORMAT>
        <INPUT_FLD>X</INPUT_FLD>
       </RPY_DYFATC>
+     </FIELDS>
+    </item>
+    <item>
+     <HEADER>
+      <PROGRAM>ZGZ_SCREEN_001</PROGRAM>
+      <SCREEN>0102</SCREEN>
+      <LANGUAGE>T</LANGUAGE>
+      <DESCRIPT>sub2</DESCRIPT>
+      <TYPE>I</TYPE>
+      <NEXTSCREEN>0102</NEXTSCREEN>
+      <LINES>027</LINES>
+      <COLUMNS>122</COLUMNS>
+     </HEADER>
+     <CONTAINERS>
+      <RPY_DYCATT>
+       <TYPE>SCREEN</TYPE>
+       <NAME>SCREEN</NAME>
+      </RPY_DYCATT>
+     </CONTAINERS>
+     <FIELDS>
       <RPY_DYFATC>
-       <CONT_TYPE>RADIOGROUP</CONT_TYPE>
-       <CONT_NAME>%A_GV_RAD1</CONT_NAME>
-       <TYPE>RADIO</TYPE>
-       <NAME>GV_RAD1</NAME>
-       <TEXT>Kadın</TEXT>
-       <LINE>006</LINE>
-       <COLUMN>023</COLUMN>
-       <LENGTH>007</LENGTH>
-       <VISLENGTH>007</VISLENGTH>
-       <HEIGHT>001</HEIGHT>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>FRAME</TYPE>
+       <NAME>%#AUTOTEXT007</NAME>
+       <TEXT>Kapasite_Bilgileri_________________________</TEXT>
+       <LINE>002</LINE>
+       <COLUMN>004</COLUMN>
+       <LENGTH>044</LENGTH>
+       <VISLENGTH>044</VISLENGTH>
+       <HEIGHT>009</HEIGHT>
        <FORMAT>CHAR</FORMAT>
-       <INPUT_FLD>X</INPUT_FLD>
-       <OUTPUT_FLD>X</OUTPUT_FLD>
+       <REQU_ENTRY>N</REQU_ENTRY>
       </RPY_DYFATC>
       <RPY_DYFATC>
-       <CONT_TYPE>RADIOGROUP</CONT_TYPE>
-       <CONT_NAME>%A_GV_RAD1</CONT_NAME>
-       <TYPE>RADIO</TYPE>
-       <NAME>GV_RAD2</NAME>
-       <TEXT>Erkek</TEXT>
-       <LINE>007</LINE>
-       <COLUMN>023</COLUMN>
-       <LENGTH>007</LENGTH>
-       <VISLENGTH>007</VISLENGTH>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT001</NAME>
+       <TEXT>Business_Kapasite</TEXT>
+       <LINE>003</LINE>
+       <COLUMN>007</COLUMN>
+       <LENGTH>017</LENGTH>
+       <VISLENGTH>017</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT008</NAME>
+       <TEXT>:</TEXT>
+       <LINE>003</LINE>
+       <COLUMN>030</COLUMN>
+       <LENGTH>001</LENGTH>
+       <VISLENGTH>001</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+       <LABELLEFT>X</LABELLEFT>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEMPLATE</TYPE>
+       <NAME>GS_SFLIGHT-SEATSMAX_B</NAME>
+       <TEXT>__________</TEXT>
+       <LINE>003</LINE>
+       <COLUMN>033</COLUMN>
+       <LENGTH>010</LENGTH>
+       <VISLENGTH>010</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>INT4</FORMAT>
+       <OUTPUT_FLD>X</OUTPUT_FLD>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT002</NAME>
+       <TEXT>Business_Doluluk</TEXT>
+       <LINE>004</LINE>
+       <COLUMN>007</COLUMN>
+       <LENGTH>016</LENGTH>
+       <VISLENGTH>016</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT009</NAME>
+       <TEXT>:</TEXT>
+       <LINE>004</LINE>
+       <COLUMN>030</COLUMN>
+       <LENGTH>001</LENGTH>
+       <VISLENGTH>001</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+       <LABELLEFT>X</LABELLEFT>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEMPLATE</TYPE>
+       <NAME>GS_SFLIGHT-SEATSOCC_B</NAME>
+       <TEXT>__________</TEXT>
+       <LINE>004</LINE>
+       <COLUMN>033</COLUMN>
+       <LENGTH>010</LENGTH>
+       <VISLENGTH>010</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>INT4</FORMAT>
+       <OUTPUT_FLD>X</OUTPUT_FLD>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT003</NAME>
+       <TEXT>Birinci_Sınıf_Kapasite</TEXT>
+       <LINE>005</LINE>
+       <COLUMN>007</COLUMN>
+       <LENGTH>022</LENGTH>
+       <VISLENGTH>022</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT010</NAME>
+       <TEXT>:</TEXT>
+       <LINE>005</LINE>
+       <COLUMN>030</COLUMN>
+       <LENGTH>001</LENGTH>
+       <VISLENGTH>001</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+       <LABELLEFT>X</LABELLEFT>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEMPLATE</TYPE>
+       <NAME>GS_SFLIGHT-SEATSMAX_F</NAME>
+       <TEXT>__________</TEXT>
+       <LINE>005</LINE>
+       <COLUMN>033</COLUMN>
+       <LENGTH>010</LENGTH>
+       <VISLENGTH>010</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>INT4</FORMAT>
+       <OUTPUT_FLD>X</OUTPUT_FLD>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT004</NAME>
+       <TEXT>Birinci_Sınıf_Doluluk</TEXT>
+       <LINE>006</LINE>
+       <COLUMN>007</COLUMN>
+       <LENGTH>021</LENGTH>
+       <VISLENGTH>021</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT011</NAME>
+       <TEXT>:</TEXT>
+       <LINE>006</LINE>
+       <COLUMN>030</COLUMN>
+       <LENGTH>001</LENGTH>
+       <VISLENGTH>001</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+       <LABELLEFT>X</LABELLEFT>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEMPLATE</TYPE>
+       <NAME>GS_SFLIGHT-SEATSOCC_F</NAME>
+       <TEXT>__________</TEXT>
+       <LINE>006</LINE>
+       <COLUMN>033</COLUMN>
+       <LENGTH>010</LENGTH>
+       <VISLENGTH>010</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>INT4</FORMAT>
+       <OUTPUT_FLD>X</OUTPUT_FLD>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT005</NAME>
+       <TEXT>Ekonomi_Kapasite</TEXT>
+       <LINE>008</LINE>
+       <COLUMN>007</COLUMN>
+       <LENGTH>016</LENGTH>
+       <VISLENGTH>016</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT012</NAME>
+       <TEXT>:</TEXT>
+       <LINE>008</LINE>
+       <COLUMN>030</COLUMN>
+       <LENGTH>001</LENGTH>
+       <VISLENGTH>001</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+       <LABELLEFT>X</LABELLEFT>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEMPLATE</TYPE>
+       <NAME>GS_SFLIGHT-SEATSMAX</NAME>
+       <TEXT>__________</TEXT>
+       <LINE>008</LINE>
+       <COLUMN>033</COLUMN>
+       <LENGTH>010</LENGTH>
+       <VISLENGTH>010</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>INT4</FORMAT>
+       <OUTPUT_FLD>X</OUTPUT_FLD>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT006</NAME>
+       <TEXT>Ekonomi_Doluluk</TEXT>
+       <LINE>009</LINE>
+       <COLUMN>007</COLUMN>
+       <LENGTH>015</LENGTH>
+       <VISLENGTH>015</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT013</NAME>
+       <TEXT>:</TEXT>
+       <LINE>009</LINE>
+       <COLUMN>030</COLUMN>
+       <LENGTH>001</LENGTH>
+       <VISLENGTH>001</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+       <LABELLEFT>X</LABELLEFT>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEMPLATE</TYPE>
+       <NAME>GS_SFLIGHT-SEATSOCC</NAME>
+       <TEXT>__________</TEXT>
+       <LINE>009</LINE>
+       <COLUMN>033</COLUMN>
+       <LENGTH>010</LENGTH>
+       <VISLENGTH>010</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>INT4</FORMAT>
+       <OUTPUT_FLD>X</OUTPUT_FLD>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>OKCODE</TYPE>
+       <TEXT>____________________</TEXT>
+       <LENGTH>020</LENGTH>
+       <VISLENGTH>020</VISLENGTH>
        <HEIGHT>001</HEIGHT>
        <FORMAT>CHAR</FORMAT>
        <INPUT_FLD>X</INPUT_FLD>
-       <OUTPUT_FLD>X</OUTPUT_FLD>
+      </RPY_DYFATC>
+     </FIELDS>
+    </item>
+    <item>
+     <HEADER>
+      <PROGRAM>ZGZ_SCREEN_001</PROGRAM>
+      <SCREEN>0200</SCREEN>
+      <LANGUAGE>T</LANGUAGE>
+      <DESCRIPT>Pop up</DESCRIPT>
+      <TYPE>M</TYPE>
+      <NEXTSCREEN>0200</NEXTSCREEN>
+      <LINES>027</LINES>
+      <COLUMNS>121</COLUMNS>
+     </HEADER>
+     <CONTAINERS>
+      <RPY_DYCATT>
+       <TYPE>SCREEN</TYPE>
+       <NAME>SCREEN</NAME>
+      </RPY_DYCATT>
+     </CONTAINERS>
+     <FIELDS>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>TEXT</TYPE>
+       <NAME>%#AUTOTEXT001</NAME>
+       <TEXT>MODEL_DİALOG_BOX_EXAMPLE</TEXT>
+       <LINE>004</LINE>
+       <COLUMN>008</COLUMN>
+       <LENGTH>024</LENGTH>
+       <VISLENGTH>024</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <REQU_ENTRY>N</REQU_ENTRY>
+      </RPY_DYFATC>
+      <RPY_DYFATC>
+       <CONT_TYPE>SCREEN</CONT_TYPE>
+       <CONT_NAME>SCREEN</CONT_NAME>
+       <TYPE>OKCODE</TYPE>
+       <TEXT>____________________</TEXT>
+       <LENGTH>020</LENGTH>
+       <VISLENGTH>020</VISLENGTH>
+       <HEIGHT>001</HEIGHT>
+       <FORMAT>CHAR</FORMAT>
+       <INPUT_FLD>X</INPUT_FLD>
       </RPY_DYFATC>
      </FIELDS>
     </item>
@@ -278,7 +1018,7 @@
     <ADM>
      <ACTCODE>000001</ACTCODE>
      <MENCODE>000001</MENCODE>
-     <PFKCODE>000001</PFKCODE>
+     <PFKCODE>000002</PFKCODE>
     </ADM>
     <STA>
      <RSMPE_STAT>
@@ -288,6 +1028,13 @@
       <PFKCODE>000001</PFKCODE>
       <BUTCODE>0001</BUTCODE>
       <INT_NOTE>Ilk screen</INT_NOTE>
+     </RSMPE_STAT>
+     <RSMPE_STAT>
+      <CODE>STATUS_0200</CODE>
+      <MODAL>P</MODAL>
+      <PFKCODE>000002</PFKCODE>
+      <BUTCODE>0001</BUTCODE>
+      <INT_NOTE>pop up ekran</INT_NOTE>
      </RSMPE_STAT>
     </STA>
     <FUN>
@@ -308,6 +1055,23 @@
       <TEXTNO>002</TEXTNO>
       <TEXT_TYPE>S</TEXT_TYPE>
       <FUN_TEXT>Çıkış</FUN_TEXT>
+     </RSMPE_FUNT>
+     <RSMPE_FUNT>
+      <CODE>&amp;CANCEL</CODE>
+      <TEXTNO>001</TEXTNO>
+      <TEXT_TYPE>S</TEXT_TYPE>
+      <TEXT_NAME>ICON_CANCEL</TEXT_NAME>
+      <ICON_ID>@0W@</ICON_ID>
+      <FUN_TEXT>İptal et</FUN_TEXT>
+      <PATH>A</PATH>
+     </RSMPE_FUNT>
+     <RSMPE_FUNT>
+      <CODE>&amp;DISPLAY</CODE>
+      <TEXTNO>001</TEXTNO>
+      <TEXT_TYPE>S</TEXT_TYPE>
+      <TEXT_NAME>ICON_DISPLAY</TEXT_NAME>
+      <ICON_ID>@10@</ICON_ID>
+      <FUN_TEXT>Display</FUN_TEXT>
      </RSMPE_FUNT>
      <RSMPE_FUNT>
       <CODE>&amp;EXT</CODE>
@@ -338,6 +1102,14 @@
       <TEXT_TYPE>S</TEXT_TYPE>
       <FUN_TEXT>Menu Cubugu 2</FUN_TEXT>
       <PATH>E</PATH>
+     </RSMPE_FUNT>
+     <RSMPE_FUNT>
+      <CODE>&amp;OK</CODE>
+      <TEXTNO>001</TEXTNO>
+      <TEXT_TYPE>S</TEXT_TYPE>
+      <TEXT_NAME>ICON_OKAY</TEXT_NAME>
+      <ICON_ID>@0V@</ICON_ID>
+      <FUN_TEXT>Devam</FUN_TEXT>
      </RSMPE_FUNT>
     </FUN>
     <MEN>
@@ -378,6 +1150,24 @@
       <NO>01</NO>
       <PFNO>02</PFNO>
      </RSMPE_BUT>
+     <RSMPE_BUT>
+      <PFK_CODE>000002</PFK_CODE>
+      <CODE>0001</CODE>
+      <NO>01</NO>
+      <PFNO>00</PFNO>
+     </RSMPE_BUT>
+     <RSMPE_BUT>
+      <PFK_CODE>000002</PFK_CODE>
+      <CODE>0001</CODE>
+      <NO>02</NO>
+      <PFNO>12</PFNO>
+     </RSMPE_BUT>
+     <RSMPE_BUT>
+      <PFK_CODE>000002</PFK_CODE>
+      <CODE>0001</CODE>
+      <NO>03</NO>
+      <PFNO>71</PFNO>
+     </RSMPE_BUT>
     </BUT>
     <PFK>
      <RSMPE_PFK>
@@ -404,6 +1194,24 @@
       <FUNCODE>&amp;BCK</FUNCODE>
       <FUNNO>002</FUNNO>
      </RSMPE_PFK>
+     <RSMPE_PFK>
+      <CODE>000002</CODE>
+      <PFNO>00</PFNO>
+      <FUNCODE>&amp;OK</FUNCODE>
+      <FUNNO>001</FUNNO>
+     </RSMPE_PFK>
+     <RSMPE_PFK>
+      <CODE>000002</CODE>
+      <PFNO>12</PFNO>
+      <FUNCODE>&amp;CANCEL</FUNCODE>
+      <FUNNO>001</FUNNO>
+     </RSMPE_PFK>
+     <RSMPE_PFK>
+      <CODE>000002</CODE>
+      <PFNO>71</PFNO>
+      <FUNCODE>&amp;DISPLAY</FUNCODE>
+      <FUNNO>001</FUNNO>
+     </RSMPE_PFK>
     </PFK>
     <SET>
      <RSMPE_STAF>
@@ -426,6 +1234,18 @@
       <STATUS>STATUS_0100</STATUS>
       <FUNCTION>&amp;MC2</FUNCTION>
      </RSMPE_STAF>
+     <RSMPE_STAF>
+      <STATUS>STATUS_0200</STATUS>
+      <FUNCTION>&amp;CANCEL</FUNCTION>
+     </RSMPE_STAF>
+     <RSMPE_STAF>
+      <STATUS>STATUS_0200</STATUS>
+      <FUNCTION>&amp;DISPLAY</FUNCTION>
+     </RSMPE_STAF>
+     <RSMPE_STAF>
+      <STATUS>STATUS_0200</STATUS>
+      <FUNCTION>&amp;OK</FUNCTION>
+     </RSMPE_STAF>
     </SET>
     <DOC>
      <RSMPE_ATRT>
@@ -447,6 +1267,19 @@
       <MODAL>D</MODAL>
       <INT_NOTE>Ilk screen</INT_NOTE>
      </RSMPE_ATRT>
+     <RSMPE_ATRT>
+      <OBJ_TYPE>P</OBJ_TYPE>
+      <OBJ_CODE>000002</OBJ_CODE>
+      <MODAL>P</MODAL>
+      <INT_NOTE>pop up ekran</INT_NOTE>
+     </RSMPE_ATRT>
+     <RSMPE_ATRT>
+      <OBJ_TYPE>B</OBJ_TYPE>
+      <OBJ_CODE>000002</OBJ_CODE>
+      <SUB_CODE>0001</SUB_CODE>
+      <MODAL>P</MODAL>
+      <INT_NOTE>pop up ekran</INT_NOTE>
+     </RSMPE_ATRT>
     </DOC>
     <TIT>
      <RSMPE_TITT>
@@ -457,9 +1290,82 @@
    </CUA>
    <TPOOL>
     <item>
+     <ID>I</ID>
+     <KEY>001</KEY>
+     <ENTRY>Havayolu Firması</ENTRY>
+     <LENGTH>26</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>002</KEY>
+     <ENTRY>Müşteri/Satıcı Bilgileri</ENTRY>
+     <LENGTH>48</LENGTH>
+    </item>
+    <item>
      <ID>R</ID>
      <ENTRY>Screen örn 1</ENTRY>
      <LENGTH>12</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_CARRID</KEY>
+     <ENTRY>.</ENTRY>
+     <LENGTH>9</LENGTH>
+     <SPLIT>D</SPLIT>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_CONNID</KEY>
+     <ENTRY>.</ENTRY>
+     <LENGTH>9</LENGTH>
+     <SPLIT>D</SPLIT>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_FLDATE</KEY>
+     <ENTRY>.</ENTRY>
+     <LENGTH>9</LENGTH>
+     <SPLIT>D</SPLIT>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_KUNNR</KEY>
+     <ENTRY>.</ENTRY>
+     <LENGTH>9</LENGTH>
+     <SPLIT>D</SPLIT>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_KUNNRN</KEY>
+     <ENTRY>.</ENTRY>
+     <LENGTH>9</LENGTH>
+     <SPLIT>D</SPLIT>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_LIFNR</KEY>
+     <ENTRY>.</ENTRY>
+     <LENGTH>9</LENGTH>
+     <SPLIT>D</SPLIT>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_LIFNRN</KEY>
+     <ENTRY>.</ENTRY>
+     <LENGTH>9</LENGTH>
+     <SPLIT>D</SPLIT>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>R_RAD1</KEY>
+     <ENTRY>Satıcı Bilgileri</ENTRY>
+     <LENGTH>24</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>R_RAD2</KEY>
+     <ENTRY>Müşteri Bilgileri</ENTRY>
+     <LENGTH>25</LENGTH>
     </item>
    </TPOOL>
   </asx:values>

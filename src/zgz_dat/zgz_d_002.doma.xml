@@ -8,7 +8,7 @@
     <DATATYPE>CHAR</DATATYPE>
     <LENG>000035</LENG>
     <OUTPUTLEN>000035</OUTPUTLEN>
-    <DDTEXT>Öğrenci Ad</DDTEXT>
+    <DDTEXT>Ad</DDTEXT>
    </DD01V>
   </asx:values>
  </asx:abap>

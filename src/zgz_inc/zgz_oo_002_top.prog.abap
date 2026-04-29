@@ -2,6 +2,7 @@
 *& Include          ZGZ_OO_002_TOP
 *&---------------------------------------------------------------------*
 TABLES: sscrfields.  " Standart seçim ekranı alanları için
+TYPES: tty_pdfs TYPE TABLE OF xstring WITH EMPTY KEY. "mail pdf için
 
 TYPES: BEGIN OF ty_alv,
          selkz      TYPE char1,          " Seçim (Excel'de yok)
@@ -69,34 +70,51 @@ DATA: gv_filename    TYPE string, "dosya
       gv_fullpath    TYPE string, "full yol
       gv_user_action TYPE i. "action.
 
-DATA: gt_files TYPE filetable, "upload için
-      gv_rc    TYPE i.
+TYPES: BEGIN OF ty_mail,
+         id        TYPE int4,
+         smtp_addr TYPE ad_smtpadr,
+         cc        TYPE xfeld,
+       END OF ty_mail.
 
+DATA: gt_mail           TYPE TABLE OF ty_mail,
+      gs_mail           TYPE ty_mail,
+      go_popup          TYPE REF TO cl_gui_alv_grid,
+      go_pop_cont       TYPE REF TO cl_gui_custom_container,
+      gt_mail_fcat      TYPE lvc_t_fcat,
+      gv_mail_confirmed TYPE abap_bool.
 
 CLASS lcl_controller DEFINITION.
   PUBLIC SECTION.
     DATA gv_rb TYPE char1.
 
+    CLASS-METHODS:
+      create_instance RETURNING VALUE(r_obj) TYPE REF TO lcl_controller.
+
     " Ana Akış
     METHODS:
+      initialization,
+      at_selection_screen,
+      at_selection_screen_valreq IMPORTING VALUE(iv_field) TYPE char30,
       start,
       get_data EXCEPTIONS no_data_found,
+      pbo,
+      pai,
       set_fcat,
       set_layout,
       display_alv,
-      get_adobeform,
-      get_header.
+      get_adobeform IMPORTING iv_mail     TYPE abap_bool OPTIONAL
+                              iv_subject  TYPE so_obj_des OPTIONAL
+                              iv_receiver TYPE ad_smtpadr OPTIONAL,
+      get_header,
 
-    " Event Handler
-    METHODS:
+      " Event Handler
       handle_toolbar FOR EVENT toolbar OF cl_gui_alv_grid
         IMPORTING e_object e_interactive,
 
       handle_user_command FOR EVENT user_command OF cl_gui_alv_grid
-        IMPORTING e_ucomm.
+        IMPORTING e_ucomm,
 
-    "Xstring methods
-    METHODS:
+      "Xstring methods
       get_xstring
         IMPORTING
           it_data    TYPE REF TO data
@@ -108,37 +126,45 @@ CLASS lcl_controller DEFINITION.
         IMPORTING
           iv_filename TYPE string
         EXPORTING
-          ev_xstring  TYPE xstring.
+          ev_xstring  TYPE xstring,
 
-    " Excel Metotları
-    METHODS:
-      "get_excel,
+      " Excel Metotları
       get_excell " parametreli
         IMPORTING  it_data      TYPE REF TO data OPTIONAL
-                   it_fcat      TYPE lvc_t_fcat "VALUE(iv_filename) TYPE string OPTIONAL
-        EXPORTING  "ev_file_path  TYPE string
-                   ev_file_size TYPE i "VALUE(ev_xml)      TYPE xstring
-                   "CHANGING   cv_filename   TYPE string
-                   "RETURNING  VALUE(gt_alv) TYPE ty_alv
-        EXCEPTIONS download_error.
+                   it_fcat      TYPE lvc_t_fcat
+        EXPORTING  ev_file_size TYPE i
+        EXCEPTIONS download_error,
+      excel_upload_cl,
+      validate_excel
+        IMPORTING
+          it_excel_data   TYPE REF TO data
+        RETURNING
+          VALUE(rv_valid) TYPE abap_bool.
 
-    " Metod tanımı
-    METHODS:
-      excel_upload_cl.
-*      IMPORTING
-*        iv_rb TYPE char1.
-
+    "Mailler
     METHODS:
       send_mail
         IMPORTING
-          iv_receiver TYPE ad_smtpadr
-          iv_subject  TYPE so_obj_des.
+          "iv_receiver TYPE ad_smtpadr
+          iv_subject TYPE so_obj_des,
+      send_mail_html
+        IMPORTING
+          iv_subject  TYPE so_obj_des
+          iv_receiver TYPE ad_smtpadr,
+      build_html_table
+        RETURNING VALUE(rv_html) TYPE string,
+      send_mail_pdf IMPORTING iv_subject  TYPE so_obj_des
+                              iv_receiver TYPE ad_smtpadr
+                              it_pdfs     TYPE tty_pdfs,
+      get_excel_abap2xlsx IMPORTING it_data TYPE REF TO data
+                                    it_fcat TYPE lvc_t_fcat,
+      get_excel_from_adobe.
+
+  PRIVATE SECTION.
+    CLASS-DATA: mo_instance TYPE REF TO lcl_controller.
 ENDCLASS.
 
-
-"CLASS lcl_controller DEFINITION DEFERRED.
-DATA: go_controller TYPE REF TO lcl_controller.
-
+DATA go_controller TYPE REF TO lcl_controller.
 
 SELECTION-SCREEN BEGIN OF BLOCK r1 WITH FRAME TITLE TEXT-004.
   SELECTION-SCREEN BEGIN OF LINE.
