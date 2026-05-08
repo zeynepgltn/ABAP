@@ -35,12 +35,19 @@ CLASS cl_controller IMPLEMENTATION.
       me->set_layout( ).
       me->set_fieldcat( ).
 
+      DATA: lt_exclude TYPE ui_functions.
+
+      " standart butonları kaldır
+      APPEND cl_gui_alv_grid=>mc_fc_loc_insert_row  TO lt_exclude. " yeni satır ekle
+      APPEND cl_gui_alv_grid=>mc_fc_loc_append_row  TO lt_exclude. " sona satır ekle
+
       CALL METHOD go_alv->set_table_for_first_display
         EXPORTING
-          is_layout       = gs_layout                " Layout
+          is_layout            = gs_layout             " Layout
+          it_toolbar_excluding = lt_exclude
         CHANGING
-          it_outtab       = gt_alv                " Output Table
-          it_fieldcatalog = gt_fcat.                " Field Catalo
+          it_outtab            = gt_alv                " Output Table
+          it_fieldcatalog      = gt_fcat.                " Field Catalo
 
       " Edit moda al
       CALL METHOD go_alv->set_ready_for_input
@@ -50,14 +57,14 @@ CLASS cl_controller IMPLEMENTATION.
   ENDMETHOD. "pbo en son güncel veri neyse, onu tek seferde basar
 
   METHOD pai.
-    CASE sy-ucomm.
-      WHEN '&BTN_ONAY'.
+    CASE ok_code.
+      WHEN 'ENTER' OR ' '.  "  ENTER komutu
         IF gv_satir_sayisi IS INITIAL OR gv_satir_sayisi <= 0.
-          MESSAGE 'Satir sayisi giriniz!'  TYPE 'S' DISPLAY LIKE 'W' .
+          MESSAGE 'Satir sayisi giriniz!' TYPE 'S' DISPLAY LIKE 'W'.
           RETURN.
         ELSE.
           me->add_rows( ).
-          CLEAR gv_satir_sayisi.   "temizl
+          CLEAR gv_satir_sayisi.
         ENDIF.
       WHEN '&BACK'.
         LEAVE TO SCREEN 0.
@@ -73,20 +80,71 @@ CLASS cl_controller IMPLEMENTATION.
         ct_fieldcat        = gt_fcat.
 
     LOOP AT gt_fcat ASSIGNING <gfs_fc>.
-      IF <gfs_fc>-fieldname = 'SELKZ'.
-        <gfs_fc>-key = <gfs_fc>-checkbox = <gfs_fc>-edit = abap_true.
-        <gfs_fc>-scrtext_s = 'Seçim'.
-        <gfs_fc>-scrtext_m = 'Seçim'.
-      ELSEIF <gfs_fc>-fieldname = 'ICON'.
-        <gfs_fc>-scrtext_s = 'Ikon'.
-        <gfs_fc>-scrtext_m = 'Ikon'.
-      ELSEIF <gfs_fc>-fieldname = 'MSG'.
-        <gfs_fc>-scrtext_s = 'Msg'.
-        <gfs_fc>-scrtext_m = 'Mesaj'.
-        <gfs_fc>-scrtext_l = 'Durum Mesajı'.
-      ELSEIF <gfs_fc>-fieldname = 'ROW_COLOR'.
-        <gfs_fc>-no_out = 'X'.
-      ENDIF.
+      CASE <gfs_fc>-fieldname.
+        WHEN 'SELKZ'.
+          <gfs_fc>-key       = abap_true.
+          <gfs_fc>-checkbox  = abap_true.
+          <gfs_fc>-edit      = abap_true.
+          <gfs_fc>-outputlen = 3.
+          <gfs_fc>-scrtext_s = 'Sçm'.
+          <gfs_fc>-scrtext_m = 'Seçim'.
+        WHEN 'ICON'.
+          <gfs_fc>-outputlen = 5.
+          <gfs_fc>-scrtext_s = 'Ikon'.
+          <gfs_fc>-scrtext_m = 'Ikon'.
+          <gfs_fc>-icon      = abap_true.
+          <gfs_fc>-edit      = abap_false.
+        WHEN 'MATNR'.
+          <gfs_fc>-outputlen = 20.
+          <gfs_fc>-scrtext_m = 'Malzeme'.
+        WHEN 'WERKS'.
+          <gfs_fc>-outputlen = 10.
+          <gfs_fc>-scrtext_m = 'Üretim Yeri'.
+        WHEN 'MRP_GROUP'.
+          <gfs_fc>-outputlen = 8.
+          <gfs_fc>-scrtext_m = 'MRP Grup'.
+        WHEN 'MRP_TYPE'.
+          <gfs_fc>-outputlen = 6.
+          <gfs_fc>-scrtext_m = 'MRP Tip'.
+        WHEN 'MRP_CTRLER'.
+          <gfs_fc>-outputlen = 8.
+          <gfs_fc>-scrtext_m = 'MRP Kont'.
+        WHEN 'LOTSIZEKEY'.
+          <gfs_fc>-outputlen = 8.
+          <gfs_fc>-scrtext_m = 'Lot Boy'.
+        WHEN 'PROC_TYPE'.
+          <gfs_fc>-outputlen = 6.
+          <gfs_fc>-scrtext_m = 'Temin'.
+        WHEN 'BACKFLUSH'.
+          <gfs_fc>-outputlen = 6.
+          <gfs_fc>-scrtext_m = 'Geri Yık'.
+        WHEN 'PLANNING_STRATEGY'.
+          <gfs_fc>-outputlen = 8.
+          <gfs_fc>-scrtext_m = 'Strateji'.
+        WHEN 'AVAILCHECK'.
+          <gfs_fc>-outputlen = 6.
+          <gfs_fc>-scrtext_m = 'Kont'.
+        WHEN 'DEP_REQ_ID'.
+          <gfs_fc>-outputlen = 6.
+          <gfs_fc>-scrtext_m = 'Bag Grksnm'.
+        WHEN 'REPMANPROF'.
+          <gfs_fc>-outputlen = 8.
+          <gfs_fc>-scrtext_m = 'Rep Prof'.
+        WHEN 'REP_MANUF'.
+          <gfs_fc>-outputlen = 6.
+          <gfs_fc>-scrtext_m = 'Rep Ürt'.
+        WHEN 'BATCH_MGMT'.
+          <gfs_fc>-outputlen = 6.
+          <gfs_fc>-scrtext_m = 'Parti'.
+        WHEN 'MSG'.
+          <gfs_fc>-outputlen = 50.
+          <gfs_fc>-scrtext_s = 'Msg'.
+          <gfs_fc>-scrtext_m = 'Mesaj'.
+          <gfs_fc>-scrtext_l = 'Durum Mesajı'.
+          <gfs_fc>-edit      = abap_false.
+        WHEN 'ROW_COLOR'.
+          <gfs_fc>-no_out = 'X'.
+      ENDCASE.
     ENDLOOP.
   ENDMETHOD.
 
@@ -94,7 +152,6 @@ CLASS cl_controller IMPLEMENTATION.
     CLEAR gs_layout.
 
     gs_layout-zebra      = abap_true.
-    gs_layout-cwidth_opt = abap_true.
     gs_layout-sel_mode   = 'A'. "Çoklu Seçim İmkanı,Seçim Sütunu
     gs_layout-edit       = abap_true.
     gs_layout-info_fname = 'ROW_COLOR'.
@@ -104,11 +161,9 @@ CLASS cl_controller IMPLEMENTATION.
     DATA: ls_alv      TYPE zgz_s_malzeme,
           lv_last_row TYPE i.
 
-    DESCRIBE TABLE gt_alv LINES lv_last_row. "satır sayısı alma
-
     DO gv_satir_sayisi TIMES.
       CLEAR ls_alv.
-      ls_alv-mrp_group         = 'ZDIS'.
+      ls_alv-mrp_group         = ' '.
       ls_alv-mrp_type          = 'PD'.
       ls_alv-mrp_ctrler        = '001'.
       ls_alv-lotsizekey        = 'EX'.
@@ -116,9 +171,9 @@ CLASS cl_controller IMPLEMENTATION.
       ls_alv-backflush         = '1'.
       ls_alv-planning_strategy = '10'.
       ls_alv-availcheck        = '02'.
-      ls_alv-dep_req_id        = '2'.
-      ls_alv-repmanprof        = 'X'.
-      ls_alv-serno_prof        = 'Z001'.
+      ls_alv-dep_req_id        = '1'.
+      ls_alv-repmanprof        = ' '.
+      ls_alv-rep_manuf        = ' '.
       ls_alv-batch_mgmt        = 'X'.
       APPEND ls_alv TO gt_alv.
     ENDDO.
@@ -145,9 +200,6 @@ CLASS cl_controller IMPLEMENTATION.
           WHEN OTHERS. "diğer alanlarda validate yok
             CONTINUE.
         ENDCASE.
-
-        " kontrol
-        me->validate_row( CHANGING cs_alv = ls_alv ).
 
         MODIFY gt_alv FROM ls_alv INDEX lv_index.
       ENDIF.
@@ -230,12 +282,6 @@ CLASS cl_controller IMPLEMENTATION.
     LOOP AT gt_alv INTO ls_alv WHERE selkz = 'X'.
       lv_index = sy-tabix.
 
-      " Kayıt öncesi son kontrol
-      IF me->validate_row( CHANGING cs_alv = ls_alv ) = abap_false.
-        MODIFY gt_alv FROM ls_alv INDEX lv_index.
-        CONTINUE.
-      ENDIF.
-
       READ TABLE gt_alv INTO ls_alv INDEX lv_index. "alvde var mı
       IF sy-subrc <> 0. CONTINUE. ENDIF.
 
@@ -262,7 +308,7 @@ CLASS cl_controller IMPLEMENTATION.
       ls_plantdata-availcheck        = ls_alv-availcheck.
       ls_plantdata-dep_req_id        = ls_alv-dep_req_id.
       ls_plantdata-repmanprof        = ls_alv-repmanprof.
-      ls_plantdata-serno_prof        = ls_alv-serno_prof.
+      ls_plantdata-rep_manuf        = ls_alv-rep_manuf.
       ls_plantdata-batch_mgmt        = ls_alv-batch_mgmt.
 
       CLEAR ls_plantdatax.
@@ -277,7 +323,7 @@ CLASS cl_controller IMPLEMENTATION.
       ls_plantdatax-availcheck        = 'X'.
       ls_plantdatax-dep_req_id        = 'X'.
       ls_plantdatax-repmanprof        = 'X'.
-      ls_plantdatax-serno_prof        = 'X'.
+      ls_plantdatax-rep_manuf        = 'X'.
       ls_plantdatax-batch_mgmt        = 'X'.
 
       CLEAR lt_return.
@@ -315,8 +361,27 @@ CLASS cl_controller IMPLEMENTATION.
   METHOD handler_toolbar.
     DATA: ls_toolbar TYPE stb_button.
 
+    " Tüm Satırları Seç
     CLEAR ls_toolbar.
-    ls_toolbar-butn_type = 3. "3Seperatör (ayraç) ekliyoruz.
+    ls_toolbar-butn_type = 0.
+    ls_toolbar-function  = 'SEL_ALL'.
+    ls_toolbar-icon      = '@9L@'.
+    ls_toolbar-text      = 'Tümünü Seç'.
+    ls_toolbar-quickinfo = 'Tüm satırları seç'.
+    APPEND ls_toolbar TO e_object->mt_toolbar.
+
+    " Seçimi Kaldır
+    CLEAR ls_toolbar.
+    ls_toolbar-butn_type = 0.
+    ls_toolbar-function  = 'DESEL_ALL'.
+    ls_toolbar-icon      = '@9M@'.
+    ls_toolbar-text      = 'Seçimi Kaldır'.
+    ls_toolbar-quickinfo = 'Tüm seçimleri kaldır'.
+    APPEND ls_toolbar TO e_object->mt_toolbar.
+
+
+    CLEAR ls_toolbar.
+    ls_toolbar-butn_type = 3. "3Seperatör (ayraç)
     APPEND ls_toolbar TO e_object->mt_toolbar.
 
     " BAPI Kaydet
@@ -333,25 +398,18 @@ CLASS cl_controller IMPLEMENTATION.
     CASE e_ucomm.
       WHEN 'BAPI_SAVE'.
         me->bapi_kaydet( ).
-      WHEN '&IC1'.  " ←ALV satırına çift tık
-        DATA: ls_alv TYPE zgz_s_malzeme,
-              ls_row TYPE i.
+      WHEN 'SEL_ALL'.
+        LOOP AT gt_alv ASSIGNING FIELD-SYMBOL(<fs_alv>).
+          <fs_alv>-selkz = 'X'.
+        ENDLOOP.
 
-        " Tıklanan satırı al
-        CALL METHOD go_alv->get_current_cell
-          IMPORTING
-            e_row = ls_row                " Row on Grid
-*           e_value   =                  " Value
-"           e_col = ls_col                " Column on Grid
-*           es_row_id =                  " Row ID
-*           es_col_id =                  " Column ID
-*           es_row_no =                  " Numeric Row ID
-          .
+        CALL METHOD go_alv->refresh_table_display.
+      WHEN 'DESEL_ALL'.
+        LOOP AT gt_alv ASSIGNING <fs_alv>.
+          <fs_alv>-selkz = ''.
+        ENDLOOP.
 
-        READ TABLE gt_alv INTO ls_alv INDEX ls_row.
-        IF sy-subrc = 0 AND ls_alv-msg IS NOT INITIAL.
-          MESSAGE ls_alv-msg TYPE 'I'.  " popup mesaj
-        ENDIF.
+        CALL METHOD go_alv->refresh_table_display.
     ENDCASE.
   ENDMETHOD.
 ENDCLASS.

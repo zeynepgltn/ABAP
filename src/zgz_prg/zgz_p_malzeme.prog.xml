@@ -19,7 +19,7 @@
       <TYPE>N</TYPE>
       <NEXTSCREEN>0100</NEXTSCREEN>
       <LINES>027</LINES>
-      <COLUMNS>121</COLUMNS>
+      <COLUMNS>122</COLUMNS>
      </HEADER>
      <CONTAINERS>
       <RPY_DYCATT>
@@ -61,22 +61,8 @@
       <RPY_DYFATC>
        <CONT_TYPE>SCREEN</CONT_TYPE>
        <CONT_NAME>SCREEN</CONT_NAME>
-       <TYPE>PUSH</TYPE>
-       <NAME>%#AUTOTEXT002</NAME>
-       <TEXT>ONAY</TEXT>
-       <LINE>004</LINE>
-       <COLUMN>015</COLUMN>
-       <LENGTH>004</LENGTH>
-       <VISLENGTH>004</VISLENGTH>
-       <HEIGHT>001</HEIGHT>
-       <PUSH_FCODE>&amp;BTN_ONAY</PUSH_FCODE>
-       <FORMAT>CHAR</FORMAT>
-       <REQU_ENTRY>N</REQU_ENTRY>
-      </RPY_DYFATC>
-      <RPY_DYFATC>
-       <CONT_TYPE>SCREEN</CONT_TYPE>
-       <CONT_NAME>SCREEN</CONT_NAME>
        <TYPE>OKCODE</TYPE>
+       <NAME>OK_CODE</NAME>
        <TEXT>____________________</TEXT>
        <LENGTH>020</LENGTH>
        <VISLENGTH>020</VISLENGTH>
@@ -148,7 +134,7 @@
     <TIT>
      <RSMPE_TITT>
       <CODE>0100</CODE>
-      <TEXT>Ana Ekran</TEXT>
+      <TEXT>Malzeme Genişletme Ekranı</TEXT>
      </RSMPE_TITT>
     </TIT>
    </CUA>

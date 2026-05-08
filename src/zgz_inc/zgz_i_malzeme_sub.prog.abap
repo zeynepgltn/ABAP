@@ -17,4 +17,6 @@ ENDMODULE.
 *----------------------------------------------------------------------*
 MODULE user_command INPUT.
   go_obj->pai( ).
+
+  CLEAR ok_code.
 ENDMODULE.

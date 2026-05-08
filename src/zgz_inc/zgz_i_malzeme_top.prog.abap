@@ -9,8 +9,9 @@ DATA: gt_alv          TYPE TABLE OF zgz_s_malzeme,
 
 
 FIELD-SYMBOLS: <gfs_fc>  TYPE lvc_s_fcat.
-
 DATA: gt_fcat   TYPE lvc_t_fcat.
+
+DATA: ok_code TYPE sy-ucomm. "enter yakalama
 
 CLASS cl_controller DEFINITION.
   PUBLIC SECTION.
