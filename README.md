@@ -1,4 +1,4 @@
-# ABAP Geliştirme Reposu 🚀
+# ABAP Geliştirme Reposu 
 
 Bu depo, SAP ABAP ortamında **Fiks Bilişim** bünyesinde (Şubat – Mayıs 2026) geliştirdiğim raporları, form tasarımlarını, interaktif ekran (dialog) programlamalarını ve veritabanı performans çalışmalarını içermektedir. Kodları, SAP sistemleri ile GitHub arasında versiyon kontrolü sağlamak amacıyla **abapGit** kullanarak aktardım.
 
