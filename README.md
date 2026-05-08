@@ -1,6 +1,6 @@
 # ABAP Geliştirme Reposu 🚀
 
-Bu depo, SAP ABAP ortamında **Fiks Bilişim** bünyesinde (Şubat – Haziran 2026) geliştirdiğim raporları, form tasarımlarını, interaktif ekran (dialog) programlamalarını ve veritabanı performans çalışmalarını içermektedir. Kodları, SAP sistemleri ile GitHub arasında versiyon kontrolü sağlamak amacıyla **abapGit** kullanarak aktardım.
+Bu depo, SAP ABAP ortamında **Fiks Bilişim** bünyesinde (Şubat – Mayıs 2026) geliştirdiğim raporları, form tasarımlarını, interaktif ekran (dialog) programlamalarını ve veritabanı performans çalışmalarını içermektedir. Kodları, SAP sistemleri ile GitHub arasında versiyon kontrolü sağlamak amacıyla **abapGit** kullanarak aktardım.
 
 ---
 
@@ -65,7 +65,15 @@ Kullanıcı etkileşimli ekran tasarımları ve PBO/PAI modül işlemlerini kurg
 - **Modern ABAP Syntax:** `LOOP AT ... GROUP BY` yapısı ile belge bazlı gruplama ve alt toplam hesaplamalarını efektif şekilde gerçekleştirdim. Inline declaration ve diğer 7.40+ özelliklerini aktif olarak kullandım.
 - **Güvenli Hata Yönetimi:** `TRY...CATCH` blokları ile `cx_sy_open_sql_db`, `cx_sy_resource_shortage`, `cx_bcs` gibi sistemsel hataları yakalayarak sistem stabilitesini artırdım.
 
-### 7. Dinamik Programlama, Excel I/O ve Mail Entegrasyonu
+### 7. Excel Tabanlı Satınalma Talebi Oluşturma (`ZGZ_P_SAT_EXCEL`)
+
+MM modülü için Excel'den toplu Satınalma Talebi (SAT) oluşturan, uçtan uca OOP mimarisiyle yazılmış bir program geliştirdim.
+
+Programın akışı seçim ekranıyla başlıyor: kullanıcı `AT SELECTION-SCREEN ON VALUE-REQUEST` ile tetiklenen F4 arama yardımı sayesinde masaüstünden bir `.xlsx` dosyası seçiyor, ardından seçim ekranına eklediğim `SABLOND` fonksiyon tuşuyla aynı yapıyı boş şablon olarak bilgisayarına indirebiliyor. Yükleme tarafında `cl_fdt_xl_spreadsheet` sınıfının hücreleri tipli okuması sayesinden `DESCRIBE FIELD` gereksinimleri ortadan kalktı; tarih alanlarında önce `CONVERT_DATE_TO_INTERNAL` fonksiyon modülü deneniyor, başarısız olursa nokta/tire/bölü işaretleri temizlenerek 8 karakterli formata manuel dönüşüm yapılıyor. Kolon kaymalarını önlemek için `ASSIGN COMPONENT` döngüsünde +2 ofset algoritması kurgulandı; `LIGHT` ve `SELKZ` alanları atlanarak veriler doğru sütunlara yerleşiyor.
+
+Veriler yüklendikten sonra program `CALL SCREEN 0100` ile ALV ekranına geçiyor. Ekran `cl_gui_docking_container` ile alt kısma yerleştirilmiş bir `cl_gui_alv_grid` barındırıyor; `LVC_FIELDCATALOG_MERGE` ile `ZGZ_S_SAT_ALV` yapısından otomatik oluşturulan saha kataloğunda `LIGHT` sütunu tıklanabilir (hotspot) sarı bir trafik ışığı ikonu olarak, `SELKZ` ise düzenlenebilir bir onay kutusu olarak yapılandırıldı. Toolbar'a eklenen `&SC` "SAT Oluştur" butonu `BAPI_PR_CREATE` çağrısını tetikliyor: başlık tipi, kalem bilgileri (malzeme, miktar, teslim tarihi, üretim yeri, satınalma grubu), hesap atama kategorisine göre dallanarak doldurulan `PRACCOUNT` yapıları (masraf yeri K, duran varlık A, proje P) ve başlık/kalem metinleri tek bir BAPI çağrısıyla sisteme iletiliyor. İşlem sonucunda `lt_return` tablosunda hata tipi (`E`/`A`) varsa `BAPI_TRANSACTION_ROLLBACK`, yoksa `BAPI_TRANSACTION_COMMIT WAIT` tetikleniyor; ilgili satırlardaki trafik ışığı ikonu yeşile ya da kırmızıya dönüyor, başarılı satırlara SAP'nin ürettiği SAT belgesi numarası yazılıyor. Işık ikonuna tıklandığında `C14ALD_BAPIRET2_SHOW` fonksiyonu o satıra ait BAPI dönüş mesajlarını pop-up olarak sunuyor. İndirme tarafında `cl_salv_ex_util` ve `cl_salv_bs_tt_util` sınıfları aracılığıyla `LIGHT` ve `SELKZ` kolonları fieldcat'ten çıkarılarak temiz bir XLSX şablonu `GUI_DOWNLOAD` ile kullanıcıya iletiliyor.
+
+### 8. Dinamik Programlama, Excel I/O ve Mail Entegrasyonu
 
 Jenerik ve tekrar kullanılabilir (reusable) metotlar tasarladım:
 
@@ -73,7 +81,7 @@ Jenerik ve tekrar kullanılabilir (reusable) metotlar tasarladım:
 - **Gelişmiş Excel İndirme (abap2xlsx):** `cl_fdt_xl_spreadsheet` sınıfı ve XSTRING dönüşümleriyle kolonları dinamik olarak okuyan tipli Excel Upload/Download mekanizmaları geliştirdim. Logo (MIME Repository), hücre birleştirme, dinamik stil tanımlamaları (renk, font, sayı formatı) ve sütun genişlikleri içeren profesyonel Excel çıktıları ürettim. `GUI_DOWNLOAD` için Türkçe karakter uyumluluğu adına codepage `4110` parametresini kullandım.
 - **BCS Mail Gönderimi:** ALV raporlarını Excel eki olarak `cl_bcs` / `cl_document_bcs` sınıflarıyla gönderdim. Alıcıları statik yazmak yerine `zgz_mail_list` bakım tablosundan okuyarak TO/CC ayrımını dinamik olarak yönettim. `POPUP_TO_GET_VALUE` ile anlık manuel alıcı girişi ve HTML gövdeli (`build_html_table`) renkli tablo içerikli mail gönderimi de kurguladım.
 
-### 8. Nesne Yönelimli (OOP) ABAP Mimarisi
+### 9. Nesne Yönelimli (OOP) ABAP Mimarisi
 
 Tüm eski tip FORM/PERFORM yapılarını `lcl_controller` sınıfına taşıyarak modern OOP tasarımına geçtim:
 
@@ -81,7 +89,7 @@ Tüm eski tip FORM/PERFORM yapılarını `lcl_controller` sınıfına taşıyara
 - Singleton tasarım kalıbıyla `cl_controller` sınıfını yönettim; `EXPORTING`, `IMPORTING`, `CHANGING`, `RETURNING` parametreleriyle metotlar arası veri alışverişini modüler hale getirdim.
 - `cl_gui_splitter_container` ile Master-Detail ALV yapısı, `mc_style_disabled` ile hücre seviyesinde dinamik kilitleme ve `drdn_hndl` / `LVC_T_DROP` ile koşullu dropdown listeleri oluşturdum.
 
-### 9. Yapay Zeka (AI) ve LLM Destekli Kod Modernizasyonu
+### 10. Yapay Zeka (AI) ve LLM Destekli Kod Modernizasyonu
 
 - **LLM Fine-Tuning:** Eski tip ABAP kodlarını 7.40+ modern syntax'a çevirmek için LangChain ve HuggingFace kullanarak StarCoder2 modelini ABAP özelinde `BitsAndBytes (4-bit quantization)` ve `LoRA` teknikleriyle `SFTTrainer` üzerinde eğittim. `abap_generate_clean` metoduyla model çıktılarını temiz formata kavuşturdum.
 - **RAG ve Vektör Veritabanı:** ABAP kod parçacıklarını `RecursiveCharacterTextSplitter` (METHOD/CLASS ayraçlı) ile bölerek FAISS vektör veritabanına indeksleyip bağlam farkındalıklı kod taşıma ve mimari özetleme Agent'ları uyguladım.
