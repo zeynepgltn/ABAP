@@ -95,6 +95,14 @@ Tüm eski tip FORM/PERFORM yapılarını `lcl_controller` sınıfına taşıyara
 - **RAG ve Vektör Veritabanı:** ABAP kod parçacıklarını `RecursiveCharacterTextSplitter` (METHOD/CLASS ayraçlı) ile bölerek FAISS vektör veritabanına indeksleyip bağlam farkındalıklı kod taşıma ve mimari özetleme Agent'ları uyguladım.
 - **VS Code ABAP Agent Ekosistemi:** `#tasi` (kod modernizasyonu) ve `#taslak_olustur` (mimari plan) komutları ile `@Musteri_A` (7.40+ Modern) / `@Musteri_B` (legacy syntax) gibi müşteri profili etiketlerinden oluşan bir kural seti ekosistemi tasarladım.
 
+
+11. SD Programı
+ZGZ_P_TEKLIF_SIPARIS programı geliştirdim.
+SD Cockpit Arayüzü: Container Splitter ile bölünmüş dinamik ekranda Hotspot izleme mekanizması kurarak seçilen teklife ait VBAP kalem detaylarının anlık görüntülenmesini sağladım.
+Validasyon ve İş Mantığı: FOR ALL ENTRIES ve REDUCE operatörleriyle derin doğrulama katmanı entegre ettim. SD belge akışı (VBFA) üzerinden "Açık Miktar" ve birim fiyat hesaplamalarını otomatikleştirdim.
+Süreç Otomasyonu ve BAPI: BAPI_SALESORDER_CREATEFROMDAT2 ve BAPI_SALESORDER_CHANGE entegrasyonuyla Oluştur/Güncelle operasyon modlarını hayata geçirdim. Dinamik koşul eşlemesiyle (ZLST) NETWR hesaplamalarındaki hassasiyet hatalarını giderdim. Programı özel işlem kodu ZSDT1'e bağladım.
+Uzun Metin ve Bildirimler: READ_TEXT / SAVE_TEXT modülleri aracılığıyla tekliften siparişe başlık metni replikasyonunu otomatikleştirdim. ADR6-SMTP_ADDR üzerinden dinamik e-posta bildirimi için Z bakım tablosu oluşturdum.
+
 ---
 
 ## ⚙️ Kurulum ve Kullanım (abapGit)
