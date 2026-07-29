@@ -19,17 +19,19 @@ TYPES: BEGIN OF ty_alv,
        END OF ty_alv.
 
 TYPES: BEGIN OF ty_alv_display,
-         selkz    TYPE xfeld,
-         vbeln    TYPE vbak-vbeln,
-         posnr    TYPE vbap-posnr,
-         kdmat    TYPE vbap-kdmat,
-         matnr    TYPE vbap-matnr,
-         maktx    TYPE makt-maktx,
-         kunnr    TYPE kna1-kunnr,
-         kwmeng   TYPE vbap-kwmeng,
-         kbetr    TYPE prcd_elements-kbetr,
-         netwr    TYPE vbap-netwr,
-         rowcolor TYPE c LENGTH 4,
+         selkz      TYPE xfeld,
+         vbeln      TYPE vbak-vbeln,
+         posnr      TYPE vbap-posnr,
+         kdmat      TYPE vbap-kdmat,
+         matnr      TYPE vbap-matnr,
+         maktx      TYPE makt-maktx,
+         kunnr      TYPE kna1-kunnr,
+         kwmeng     TYPE vbap-kwmeng,
+         kbetr      TYPE prcd_elements-kbetr,
+         netwr      TYPE vbap-netwr,
+         line_color TYPE c LENGTH 4,
+         cell_color TYPE slis_t_specialcol_alv, "şu cell şu renkte
+         " cell_color TYPE slis_t_specialcol_alv, "şu cell şu renkte
        END OF ty_alv_display.
 
 DATA: gt_alv         TYPE TABLE OF ty_alv,
@@ -41,6 +43,18 @@ DATA: gt_fcat TYPE slis_t_fieldcat_alv,
       gs_fcat TYPE slis_fieldcat_alv.
 
 DATA: gs_layout TYPE slis_layout_alv.
+
+DATA: gs_cell_color TYPE slis_specialcol_alv.
+
+DATA: gt_exclude TYPE slis_t_extab,
+      gs_exclude TYPE slis_extab,
+      gt_sort    TYPE slis_t_sortinfo_alv,
+      gs_sort    TYPE slis_sortinfo_alv,
+      gt_filter  TYPE slis_t_filter_alv,
+      gs_filter  TYPE slis_filter_alv,
+      gs_variant TYPE disvariant,
+      gs_variant_get TYPE disvariant,
+      gv_exit TYPE char1.
 
 DATA: fm_name TYPE rs38l_fnam.
 
@@ -118,3 +132,5 @@ GET REFERENCE OF gt_excel INTO lr_data_ref.
 
 "Metodun beklediği tipte yeni bir tablo
 DATA: gt_fcat_lvc TYPE lvc_t_fcat.
+
+PARAMETERS: p_var TYPE disvariant-variant. "tablonun elementi

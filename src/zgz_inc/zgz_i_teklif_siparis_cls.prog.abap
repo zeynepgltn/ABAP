@@ -39,24 +39,27 @@ CLASS cl_main IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD read_data.
+    CLEAR me->mt_alv.
+
+    "koşullara göre ana alv verilerini çek
     SELECT teklif~vbeln,
-         teklif~kunnr,
-         teklif~vkorg,
-         teklif~vtweg,
-         teklif~spart,
-         teklif~netwr,
-         teklif~waerk,
-         teklif~angdt,
-         teklif~bnddt,
-         teklif~gbstk,
-         siparis~vbeln AS siparis_no
-    FROM vbak AS teklif
-    LEFT OUTER JOIN vbak AS siparis ON siparis~vgbel = teklif~vbeln
-    WHERE teklif~kunnr = @p_kunnr
-      AND teklif~angdt IN @s_tarih
-      AND teklif~vbtyp = 'B'
-      AND teklif~abstk = 'A'
-    INTO CORRESPONDING FIELDS OF TABLE @me->mt_alv.
+           teklif~kunnr,
+           teklif~vkorg,
+           teklif~vtweg,
+           teklif~spart,
+           teklif~netwr,
+           teklif~waerk,
+           teklif~angdt,
+           teklif~bnddt,
+           teklif~gbstk,
+           siparis~vbeln AS siparis_no
+      FROM vbak AS teklif
+      LEFT OUTER JOIN vbak AS siparis ON siparis~vgbel = teklif~vbeln
+      WHERE teklif~kunnr = @p_kunnr
+        AND teklif~angdt IN @s_tarih
+        AND teklif~vbtyp = 'B'
+        AND teklif~abstk = 'A'
+      INTO CORRESPONDING FIELDS OF TABLE @me->mt_alv.
 
     IF sy-subrc <> 0.
       MESSAGE 'Kriterlere uygun açık teklif bulunamadı!' TYPE 'S' DISPLAY LIKE 'E'.
@@ -65,16 +68,13 @@ CLASS cl_main IMPLEMENTATION.
 
     " her teklif için sipariş_nosu boş satır
     DATA lt_yeni LIKE me->mt_alv.
-
-
     DATA lt_teklif_listesi TYPE TABLE OF vbeln.
 
     LOOP AT me->mt_alv INTO DATA(ls_chk).
       APPEND ls_chk-vbeln TO lt_teklif_listesi.
-    ENDLOOP. "vbelnler
+    ENDLOOP.
     SORT lt_teklif_listesi.
-    DELETE ADJACENT DUPLICATES FROM lt_teklif_listesi.
-
+    DELETE ADJACENT DUPLICATES FROM lt_teklif_listesi. "vbelnleri topla sırala
 
     "sipariş no boş satırlar
     LOOP AT lt_teklif_listesi INTO DATA(lv_teklif).
@@ -92,90 +92,112 @@ CLASS cl_main IMPLEMENTATION.
 
     me->mt_alv = lt_yeni.
 
+    "STXH'den notu olan belgeleri bul,
+    "İki farklı görev için iki ayrı tipte tablo
+    DATA lt_not_listesi   TYPE TABLE OF tdobname. " STXH için char70 (TDOBNAME)
+    DATA lt_belge_listesi TYPE TABLE OF vbeln.    " VBAP için char10 (VBELN)
 
-    "STXH'den notu olan belgeleri bul
-    DATA lt_vbeln_list TYPE TABLE OF tdobname.
-
+    " Tek bir döngüde iki tabloyu da
     LOOP AT me->mt_alv INTO ls_chk.
-      APPEND ls_chk-vbeln TO lt_vbeln_list.
+      APPEND CONV tdobname( ls_chk-vbeln ) TO lt_not_listesi.
+      APPEND ls_chk-vbeln                  TO lt_belge_listesi.
+
       IF ls_chk-siparis_no IS NOT INITIAL.
-        APPEND ls_chk-siparis_no TO lt_vbeln_list.
+        APPEND CONV tdobname( ls_chk-siparis_no ) TO lt_not_listesi.
+        APPEND ls_chk-siparis_no                  TO lt_belge_listesi.
       ENDIF.
     ENDLOOP.
 
-    IF lt_vbeln_list IS NOT INITIAL.
-      SORT lt_vbeln_list.
-      DELETE ADJACENT DUPLICATES FROM lt_vbeln_list.
+    "Tekilleştirme işlemleri
+    IF lt_not_listesi IS NOT INITIAL.
+      SORT lt_not_listesi.
+      DELETE ADJACENT DUPLICATES FROM lt_not_listesi.
 
+      SORT lt_belge_listesi.
+      DELETE ADJACENT DUPLICATES FROM lt_belge_listesi.
+
+      " STXH Sorgusu
       SELECT tdname
         FROM stxh
         INTO TABLE @DATA(lt_stxh)
-        FOR ALL ENTRIES IN @lt_vbeln_list
+*        BYPASSING BUFFER
+        FOR ALL ENTRIES IN @lt_not_listesi
         WHERE tdobject = 'VBBK'
-          AND tdname   = @lt_vbeln_list-table_line
+          AND tdname   = @lt_not_listesi-table_line
           AND tdspras  = @sy-langu
           AND tdid     = '0001'.
 
       SORT lt_stxh BY tdname.
     ENDIF.
 
+    "sum
+    TYPES: BEGIN OF ty_netwr_sum,
+             vbeln TYPE vbeln_va,
+             netwr TYPE netwr_ap,
+           END OF ty_netwr_sum.
 
-    " sipariş NETWRleri için toplu SELECT
-    DATA lt_siparis_listesi TYPE TABLE OF vbeln.
+    DATA: lt_netwr_sum TYPE TABLE OF ty_netwr_sum,
+          ls_netwr_sum TYPE ty_netwr_sum.
 
-    LOOP AT me->mt_alv INTO ls_chk
-      WHERE siparis_no IS NOT INITIAL.
-      APPEND ls_chk-siparis_no TO lt_siparis_listesi.
-    ENDLOOP.
-
-    IF lt_siparis_listesi IS NOT INITIAL.
-      SORT lt_siparis_listesi.
-      DELETE ADJACENT DUPLICATES FROM lt_siparis_listesi.
-
+    " VBAP sorgusu
+    IF lt_belge_listesi IS NOT INITIAL.
+      " VBAP Sorgusu - lt_belge_listesi
       SELECT vbeln, netwr
-        FROM vbak
-        INTO TABLE @DATA(lt_siparis_netwr)
-        FOR ALL ENTRIES IN @lt_siparis_listesi
-        WHERE vbeln = @lt_siparis_listesi-table_line.
+        FROM vbap
+        INTO TABLE @DATA(lt_vbap_netwr)
+        FOR ALL ENTRIES IN @lt_belge_listesi
+        WHERE vbeln = @lt_belge_listesi-table_line.
 
-      SORT lt_siparis_netwr BY vbeln.
+      " VBELN bazında topla
+      LOOP AT lt_vbap_netwr INTO DATA(ls_vbap).
+        ls_netwr_sum-vbeln = ls_vbap-vbeln.
+        ls_netwr_sum-netwr = ls_vbap-netwr.
+        COLLECT ls_netwr_sum INTO lt_netwr_sum.
+      ENDLOOP.
+
+      SORT lt_netwr_sum BY vbeln.
     ENDIF.
 
-    " Renk + NETWR + Style + Notlar
+    " Renk  NETWR  Style  Notlar
     LOOP AT me->mt_alv ASSIGNING FIELD-SYMBOL(<fs_alv>).
       CLEAR: <fs_alv>-line_color, <fs_alv>-style.
 
       " Renk + SELKZ disabled
       IF ( sy-datum > <fs_alv>-bnddt ) OR ( <fs_alv>-gbstk = 'C' ).
-        <fs_alv>-line_color = 'C600'.
-        APPEND VALUE #( fieldname = 'SELKZ'
+        <fs_alv>-line_color = 'C500'.
+        INSERT VALUE #( fieldname = 'SELKZ'
                         style     = cl_gui_alv_grid=>mc_style_disabled )
-               TO <fs_alv>-style.
+              INTO TABLE <fs_alv>-style.
       ELSE.
         <fs_alv>-line_color = 'C000'.
       ENDIF.
 
-      " Sipariş varsa siparişin NETWRini kullan
-      IF <fs_alv>-siparis_no IS NOT INITIAL.
-        READ TABLE lt_siparis_netwr INTO DATA(ls_snetwr)
-          WITH KEY vbeln = <fs_alv>-siparis_no BINARY SEARCH.
-        IF sy-subrc = 0.
-          <fs_alv>-netwr = ls_snetwr-netwr.
-        ENDIF.
+      " NETWRi kalem toplamından al sipariş varsa siparişten, yoksa teklifin
+      DATA(lv_lookup_vbeln) = COND vbeln(
+        WHEN <fs_alv>-siparis_no IS NOT INITIAL
+        THEN <fs_alv>-siparis_no
+        ELSE <fs_alv>-vbeln ).
 
-        " Sipariş no doluysa SIPARIS_NOTU disabled (read-only)
-        APPEND VALUE #( fieldname = 'SIPARIS_NOTU'
-                        style     = cl_gui_alv_grid=>mc_style_disabled )
-               TO <fs_alv>-style.
+      READ TABLE lt_netwr_sum INTO DATA(ls_sum)
+        WITH KEY vbeln = lv_lookup_vbeln BINARY SEARCH.
+      IF sy-subrc = 0.
+        <fs_alv>-netwr = ls_sum-netwr.
       ENDIF.
 
-      " Teklif notu  STXH'de varsa READ_TEXT
+      " Sipariş no doluysa SIPARIS_NOTU disabled
+      IF <fs_alv>-siparis_no IS NOT INITIAL.
+        INSERT VALUE #( fieldname = 'SIPARIS_NOTU'
+                       style     = cl_gui_alv_grid=>mc_style_disabled )
+              INTO TABLE <fs_alv>-style.
+      ENDIF.
+
+      " Teklif notu STXHde varsa READ_TEXT
       DATA(lv_name_chk) = CONV tdobname( <fs_alv>-vbeln ).
       READ TABLE lt_stxh TRANSPORTING NO FIELDS
         WITH KEY tdname = lv_name_chk BINARY SEARCH.
       IF sy-subrc = 0.
         <fs_alv>-teklif_notu = me->read_text_short(
-                                iv_vbeln  = <fs_alv>-vbeln ).
+                                iv_vbeln = <fs_alv>-vbeln ).
       ENDIF.
 
       " Sipariş notu
@@ -185,7 +207,7 @@ CLASS cl_main IMPLEMENTATION.
           WITH KEY tdname = lv_name_chk BINARY SEARCH.
         IF sy-subrc = 0.
           <fs_alv>-siparis_notu = me->read_text_short(
-                                    iv_vbeln  = <fs_alv>-siparis_no ).
+                                    iv_vbeln = <fs_alv>-siparis_no ).
         ENDIF.
       ENDIF.
     ENDLOOP.
@@ -196,7 +218,7 @@ CLASS cl_main IMPLEMENTATION.
   METHOD pbo.
     CASE iv_dynnr.
       WHEN '100' OR '0100'.
-        " Mevcut ana ekran kodu burada
+        " Mevcut ana ekran
         SET PF-STATUS 'PF100'.
         SET TITLEBAR  'T100'.
 
@@ -208,10 +230,11 @@ CLASS cl_main IMPLEMENTATION.
               dynnr     = iv_dynnr
               side      = cl_gui_docking_container=>dock_at_bottom
               extension = cl_gui_docking_container=>ws_maximizebox.
-          "ratio                       = 95
+         " ratio                       = 95
 
           IF sy-subrc <> 0.
             MESSAGE 'Hata.' TYPE 'S' DISPLAY LIKE 'E'.
+            RETURN.
           ENDIF.
 
           "splitter
@@ -223,6 +246,7 @@ CLASS cl_main IMPLEMENTATION.
 
           IF sy-subrc <> 0.
             MESSAGE 'Hata.' TYPE 'S' DISPLAY LIKE 'E'.
+*            MESSAGE text-e01 TYPE 'S' DISPLAY LIKE 'E'.
           ENDIF.
 
           "yükseklik
@@ -253,8 +277,8 @@ CLASS cl_main IMPLEMENTATION.
           "handler
           SET HANDLER: me->handle_toolbar       FOR me->mo_alv,
                        me->handle_user_command  FOR me->mo_alv,
-                       "me->handle_hotspot_click FOR me->mo_alv
-                       me->handle_data_changed_main FOR me->mo_alv.
+                       me->handle_data_changed_main  FOR me->mo_alv,
+                       me->handle_hotspot_click    FOR me->mo_alv.
 
           "layout
           CLEAR me->ms_layout.
@@ -271,10 +295,11 @@ CLASS cl_main IMPLEMENTATION.
             i_event_id = cl_gui_alv_grid=>mc_evt_modified ).
 
           me->mo_alv->set_table_for_first_display(
-                      EXPORTING i_bypassing_buffer = 'X'
-                         is_layout          = me->ms_layout
-                      CHANGING  it_fieldcatalog    = me->mt_fcat
-                        it_outtab          = me->mt_alv ).
+            EXPORTING i_bypassing_buffer   = 'X'
+                      is_layout            = me->ms_layout
+            CHANGING  it_fieldcatalog      = me->mt_fcat
+                      it_outtab            = me->mt_alv ).
+
         ELSE.
           me->mo_alv->refresh_table_display( ).
         ENDIF.
@@ -384,7 +409,7 @@ CLASS cl_main IMPLEMENTATION.
             WHEN 'SELKZ'.
               <f>-checkbox = <f>-edit = abap_true.  <f>-outputlen = 2.
             WHEN 'VBELN'.
-*              <f>-hotspot = abap_true.
+              <f>-hotspot = abap_true.
               <f>-outputlen = 10.
               <f>-scrtext_s =  'Teklif No'.
               <f>-scrtext_m = 'Teklif No'.
@@ -414,6 +439,7 @@ CLASS cl_main IMPLEMENTATION.
               <f>-outputlen = 10.
               <f>-scrtext_m = 'Geç. Sonu'.
             WHEN 'SIPARIS_NO'.
+              <f>-hotspot = abap_true.
               <f>-outputlen = 5.
               <f>-scrtext_s = 'No'.
               <f>-scrtext_m = 'Sprş No'.
@@ -528,16 +554,6 @@ CLASS cl_main IMPLEMENTATION.
     ENDCASE.
   ENDMETHOD.
 
-  METHOD calc_siparis_miktar.
-    " İŞLEM 2, Sipariş miktarı = VBFA'da vbtyp_n='C' olan satırların RFMNG toplamı
-    SELECT SUM( rfmng )
-      FROM vbfa
-      INTO @rv_miktar
-      WHERE vbelv   = @iv_vbeln
-        AND posnv   = @iv_posnr
-        AND vbtyp_n = 'C'.
-  ENDMETHOD.
-
   METHOD calc_acik_miktar.
     " İŞLEM 1, Açık miktar = KWMENG - sipariş miktarı
     rv_miktar = iv_kwmeng - iv_siparis_miktar.
@@ -550,56 +566,167 @@ CLASS cl_main IMPLEMENTATION.
   METHOD load_kalem_data.
     CLEAR me->mt_kalem.
 
-    " VBAP kalemleri + MAKT açıklama
-    SELECT vbap~posnr,
-           vbap~matnr,
-           makt~maktx,
-           vbap~kwmeng,
-           vbap~netwr,
-           vbap~waerk,
-           vbap~brgew,
-           vbap~ntgew,
-           vbap~gewei
-      FROM vbap
-      LEFT OUTER JOIN makt ON makt~matnr = vbap~matnr
-                          AND makt~spras = @sy-langu
-      INTO CORRESPONDING FIELDS OF TABLE @me->mt_kalem
-      WHERE vbap~vbeln = @me->mv_current_vbeln.
+    " Bu vbeln teklif mi sipariş mi
+    SELECT SINGLE vbtyp
+      FROM vbak
+      INTO @DATA(lv_vbtyp)
+      WHERE vbeln = @me->mv_current_vbeln. "eklif mi (B) yoksa Sipariş mi (C)
 
-    IF me->mt_kalem IS INITIAL.
-      RETURN.
-    ENDIF.
+    IF lv_vbtyp = 'B'.
+      " VBAPtan teklif kalemleri,teklif satırı
+      SELECT vbap~posnr,
+             vbap~matnr,
+             makt~maktx,
+             vbap~kwmeng,        " Teklif KWMENG
+             vbap~netwr,
+             vbap~waerk,
+             vbap~brgew,
+             vbap~ntgew,
+             vbap~gewei
+        FROM vbap
+        LEFT OUTER JOIN makt ON makt~matnr = vbap~matnr
+                            AND makt~spras = @sy-langu
+        INTO CORRESPONDING FIELDS OF TABLE @me->mt_kalem
+        WHERE vbap~vbeln = @me->mv_current_vbeln.
 
-    " VBFA - tek seferde tüm kalemler için çek
-    SELECT vbelv, posnv, rfmng
-      FROM vbfa
-      INTO TABLE @DATA(lt_vbfa)
-      WHERE vbelv   = @me->mv_current_vbeln
-        AND vbtyp_n = 'C'.
+      IF me->mt_kalem IS INITIAL. RETURN. ENDIF.
 
-    " Hesaplar
-    LOOP AT me->mt_kalem ASSIGNING FIELD-SYMBOL(<fs_kalem>).
+      " VBFA , siparişe giden miktar VBELV, POSNV
+      SELECT posnv AS posnr,
+        rfmng
+        FROM vbfa
+        INTO TABLE @DATA(lt_flow_teklif)
+        WHERE vbelv   = @me->mv_current_vbeln
+          AND vbtyp_n = 'C'.
 
-      " Sipariş miktarı lt_vbfa içinden topla,DB hit yok
-      <fs_kalem>-siparis_miktar = REDUCE kwmeng(  " Sonuç tipi: kwmeng (miktar) olacak
-      INIT s = 0                               " Başlangıç değeri: s adında bir değişken tanımla ve 0 yap
-      FOR ls IN lt_vbfa                        " Döngü: lt_vbfa tablosundaki her satırı 'ls' olarak oku
-      WHERE ( posnv = <fs_kalem>-posnr )       " Filtre: Sadece o anki kalem numarasına eşit olanları al
-      NEXT s = s + ls-rfmng ).                 " Biriktirme: Her döngüde s'e rfmng miktarını ekle
+      LOOP AT me->mt_kalem ASSIGNING FIELD-SYMBOL(<fs_kalem>).
+        <fs_kalem>-siparis_miktar = REDUCE kwmeng(
+          INIT s = 0
+          FOR ls IN lt_flow_teklif
+          WHERE ( posnr = <fs_kalem>-posnr )
+          NEXT s = s + ls-rfmng ).
 
-      " Birim fiyat
-      IF <fs_kalem>-kwmeng <> 0.
-        <fs_kalem>-birim_fiyat = <fs_kalem>-netwr / <fs_kalem>-kwmeng.
+        <fs_kalem>-acik_miktar = me->calc_acik_miktar(
+                                  iv_kwmeng         = <fs_kalem>-kwmeng
+                                  iv_siparis_miktar = <fs_kalem>-siparis_miktar ).
+
+        IF <fs_kalem>-kwmeng <> 0.
+          <fs_kalem>-birim_fiyat = <fs_kalem>-netwr / <fs_kalem>-kwmeng.
+        ENDIF.
+      ENDLOOP.
+
+    ELSEIF lv_vbtyp = 'C'.
+      " VBAPtan sipariş kalemleri
+      SELECT vbap~posnr,
+             vbap~matnr,
+             makt~maktx,
+             vbap~kwmeng,
+             vbap~netwr,
+             vbap~waerk,
+             vbap~brgew,
+             vbap~ntgew,
+             vbap~gewei,
+             vbap~vgbel,
+             vbap~vgpos
+        FROM vbap
+        LEFT OUTER JOIN makt ON makt~matnr = vbap~matnr
+                            AND makt~spras = @sy-langu
+        INTO TABLE @DATA(lt_siparis_kalem)
+        WHERE vbap~vbeln = @me->mv_current_vbeln.
+
+      IF lt_siparis_kalem IS INITIAL. RETURN. ENDIF.
+
+      " 1. Kaynak teklif listesini topla
+      DATA lt_teklif_listesi TYPE TABLE OF vbeln.
+      LOOP AT lt_siparis_kalem INTO DATA(ls_sk).
+        IF ls_sk-vgbel IS NOT INITIAL.
+          APPEND ls_sk-vgbel TO lt_teklif_listesi.
+        ENDIF.
+      ENDLOOP.
+      SORT lt_teklif_listesi.
+      DELETE ADJACENT DUPLICATES FROM lt_teklif_listesi.
+
+      " 2. Kaynak teklif KWMENGleri
+      DATA lt_teklif_kwmeng TYPE TABLE OF vbap.
+      IF lt_teklif_listesi IS NOT INITIAL.
+        SELECT vbeln, posnr, kwmeng
+          FROM vbap
+          INTO CORRESPONDING FIELDS OF TABLE @lt_teklif_kwmeng
+          FOR ALL ENTRIES IN @lt_teklif_listesi
+          WHERE vbeln = @lt_teklif_listesi-table_line.
+        SORT lt_teklif_kwmeng BY vbeln posnr.
       ENDIF.
 
-    ENDLOOP.
+      " 3. VBFAdan kaynak tekliflerin TÜM siparişlere giden RFMNG
+      DATA lt_vbfa_teklif TYPE TABLE OF vbfa.
+      IF lt_teklif_listesi IS NOT INITIAL.
+        SELECT vbelv, posnv, vbeln, posnn, rfmng
+          FROM vbfa
+          INTO CORRESPONDING FIELDS OF TABLE @lt_vbfa_teklif
+          FOR ALL ENTRIES IN @lt_teklif_listesi
+          WHERE vbelv   = @lt_teklif_listesi-table_line
+            AND vbtyp_n = 'C'.
+        SORT lt_vbfa_teklif BY vbelv posnv vbeln.
+      ENDIF.
+
+      " 4. mt_kalemi doldur
+      LOOP AT lt_siparis_kalem INTO ls_sk.
+        DATA lv_teklif_kwmeng TYPE kwmeng.
+        DATA lv_vbfa_toplam   TYPE kwmeng.
+        CLEAR: lv_teklif_kwmeng, lv_vbfa_toplam.
+
+        IF ls_sk-vgbel IS NOT INITIAL.
+          " Tekliften gelen kalem
+          READ TABLE lt_teklif_kwmeng INTO DATA(ls_tk)
+            WITH KEY vbeln = ls_sk-vgbel
+                     posnr = ls_sk-vgpos BINARY SEARCH.
+          IF sy-subrc = 0.
+            lv_teklif_kwmeng = ls_tk-kwmeng.
+          ENDIF.
+
+          lv_vbfa_toplam = REDUCE kwmeng(
+            INIT s = 0
+            FOR ls_vbfa IN lt_vbfa_teklif
+            WHERE ( vbelv = ls_sk-vgbel AND posnv = ls_sk-vgpos )
+            NEXT s = s + ls_vbfa-rfmng ).
+        ELSE.
+          " Doğrudan siparişe girilen kalem, teklif referansı yok
+          lv_teklif_kwmeng = 0.
+          lv_vbfa_toplam   = 0.
+        ENDIF.
+
+        DATA(lv_bf) = COND netwr_ap(
+              WHEN lv_teklif_kwmeng <> 0
+              THEN ls_sk-netwr / lv_teklif_kwmeng
+              WHEN ls_sk-kwmeng <> 0              "  teklif yoksa sipariş miktarından hesapla
+              THEN ls_sk-netwr / ls_sk-kwmeng
+              ELSE 0 ).
+
+        APPEND VALUE #(
+          posnr          = ls_sk-posnr
+          matnr          = ls_sk-matnr
+          maktx          = ls_sk-maktx
+          kwmeng         = lv_teklif_kwmeng
+          siparis_miktar = ls_sk-kwmeng
+          acik_miktar    = me->calc_acik_miktar(
+                             iv_kwmeng         = lv_teklif_kwmeng
+                             iv_siparis_miktar = lv_vbfa_toplam )
+          netwr          = ls_sk-netwr
+          birim_fiyat    = lv_bf
+          waerk          = ls_sk-waerk
+          brgew          = ls_sk-brgew
+          ntgew          = ls_sk-ntgew
+          gewei          = ls_sk-gewei
+        ) TO me->mt_kalem.
+      ENDLOOP.
+    ENDIF.
   ENDMETHOD.
 
   "olustura veya güncelleye basıldı,pop up gelcek
   METHOD open_popup.
     CLEAR me->mt_popup.
 
-    " Seçilen teklif + sipariş çiftlerini topla
+    " Seçilen teklif , sipariş çiftlerini topla
     DATA: BEGIN OF ls_secim,
             vbeln         TYPE vbeln,  " Teklif
             siparis_vbeln TYPE vbeln,  " Sipariş
@@ -669,76 +796,59 @@ CLASS cl_main IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    IF me->mv_popup_mode = 'C'.
-      " CREATE MODU
-      " Toplam kullanılan miktar İŞLEM 2
-      SELECT vbelv, posnv, rfmng
-        FROM vbfa
-        INTO TABLE @DATA(lt_vbfa_create)
-        FOR ALL ENTRIES IN @lt_secilen
-        WHERE vbelv   = @lt_secilen-table_line
-          AND vbtyp_n = 'C'. " tüm siparişlere giden RFMNG
+    "  Eski IF me->mv_popup_mode = 'C' ve ELSEIF bloklarını silip
 
-      LOOP AT me->mt_popup ASSIGNING FIELD-SYMBOL(<fs_p>).
-        <fs_p>-kullanilan_miktar = REDUCE kwmeng(
+    " Tekliflerin TÜM sipariş akışlarını VBFA tek seferde
+    SELECT vbelv,
+      vbeln,
+      posnv,
+      rfmng
+      FROM vbfa
+      INTO TABLE @DATA(lt_vbfa_all)
+      FOR ALL ENTRIES IN @lt_secilen
+      WHERE vbelv   = @lt_secilen-table_line
+        AND vbtyp_n = 'C'.
+
+    SORT lt_vbfa_all BY vbelv posnv vbeln.
+
+    DATA lt_popup_yeni LIKE me->mt_popup.
+
+    LOOP AT lt_secim INTO ls_secim.
+      LOOP AT me->mt_popup INTO DATA(ls_p) WHERE vbeln = ls_secim-vbeln.
+        ls_p-siparis_vbeln = ls_secim-siparis_vbeln.
+
+        " Orijinal Teklif Miktarını koruyoruz KWMENG her zaman
+        " Teklif kaleminin TÜM siparişlere giden TOPLAM miktarı
+        DATA(lv_toplam_giden) = REDUCE kwmeng(
           INIT s = 0
-          FOR ls IN lt_vbfa_create
-          WHERE ( vbelv = <fs_p>-vbeln AND posnv = <fs_p>-posnr )
-          NEXT s = s + ls-rfmng ).
+          FOR ls_vb IN lt_vbfa_all
+          WHERE ( vbelv = ls_p-vbeln AND posnv = ls_p-posnr )
+          NEXT s = s + ls_vb-rfmng ).
 
-        <fs_p>-acik_miktar = me->calc_acik_miktar(
-                               iv_kwmeng         = <fs_p>-kwmeng
-                               iv_siparis_miktar = <fs_p>-kullanilan_miktar ).
-      ENDLOOP.
+        " Doğru Açık Miktar Hesabı Teklif Miktarı - Toplam Giden
+        ls_p-acik_miktar = me->calc_acik_miktar(
+                             iv_kwmeng         = ls_p-kwmeng
+                             iv_siparis_miktar = lv_toplam_giden ).
 
-    ELSEIF me->mv_popup_mode = 'U'.
-      " UPDATE MODU İŞLEM 4 spesifik siparişe gitmiş miktar
-      " VBFA  hem toplam acik için hem spesifik sipariş aktarımları
-      SELECT vbelv,
-        vbeln,
-        posnv,
-        rfmng
-        FROM vbfa
-        INTO TABLE @DATA(lt_vbfa_update)
-        FOR ALL ENTRIES IN @lt_secilen
-        WHERE vbelv   = @lt_secilen-table_line
-          AND vbtyp_n = 'C'.
-
-      " Şimdi mt_popup için her kalemi, lt_secim'deki tüm sipariş eşleşmelerine kopyala
-      " Eğer kullanıcı aynı tekliğin 2 farklı siparişini seçtiyse, kalemler 2 kez gelmeli
-      DATA lt_popup_yeni LIKE me->mt_popup.
-
-      LOOP AT me->mt_popup INTO DATA(ls_p).
-        " Bu teklife ait seçili sipariş(ler) için ayrı satır oluştur
-        LOOP AT lt_secim INTO ls_secim WHERE vbeln = ls_p-vbeln.
-          ls_p-siparis_vbeln = ls_secim-siparis_vbeln.
-
-          " İŞLEM 4 Bu spesifik siparişe gitmiş miktar
+        " Moda göre pop-up kolon değerlerini eşliyoruz
+        IF me->mv_popup_mode = 'C'.
+          ls_p-kullanilan_miktar = lv_toplam_giden.
+        ELSEIF me->mv_popup_mode = 'U'.
+          " Bu spesifik siparişe gitmiş miktarı buluyoruz
           ls_p-siparis_miktar = REDUCE kwmeng(
             INIT s = 0
-            FOR ls_v IN lt_vbfa_update
+            FOR ls_v IN lt_vbfa_all
             WHERE ( vbelv = ls_p-vbeln
-                 AND vbeln = ls_secim-siparis_vbeln
-                 AND posnv = ls_p-posnr )
+                AND vbeln = ls_secim-siparis_vbeln
+                AND posnv = ls_p-posnr )
             NEXT s = s + ls_v-rfmng ).
+        ENDIF.
 
-          " Toplam kullanılan,açık miktar hesabı için
-          DATA(lv_toplam) = REDUCE kwmeng(
-            INIT s = 0
-            FOR ls_vb IN lt_vbfa_update
-            WHERE ( vbelv = ls_p-vbeln AND posnv = ls_p-posnr )
-            NEXT s = s + ls_vb-rfmng ).
-
-          ls_p-acik_miktar = me->calc_acik_miktar(
-                               iv_kwmeng         = ls_p-kwmeng
-                               iv_siparis_miktar = lv_toplam ).
-
-          APPEND ls_p TO lt_popup_yeni.
-        ENDLOOP.
+        APPEND ls_p TO lt_popup_yeni.
       ENDLOOP.
+    ENDLOOP.
 
-      me->mt_popup = lt_popup_yeni.
-    ENDIF.
+    me->mt_popup = lt_popup_yeni.
 
     CALL SCREEN 200 STARTING AT 5 5
                     ENDING   AT 100 18.
@@ -816,7 +926,6 @@ CLASS cl_main IMPLEMENTATION.
       FOR ALL ENTRIES IN @lt_vbeln_listesi
       WHERE vbpa~vbeln = @lt_vbeln_listesi-table_line
         AND parvw IN ( 'AG', 'WE' ). "sadece bu değerler için
-
 
 
     SORT lt_vbak BY vbeln.
@@ -959,6 +1068,85 @@ CLASS cl_main IMPLEMENTATION.
     " Üst ALV'yi yenile
     me->read_data( EXCEPTIONS no_data_found = 1 ).
     me->mo_alv->refresh_table_display( ).
+
+    " Alt ALV açıksa onu da yenile
+    IF me->mv_bottom_open = abap_true
+       AND me->mv_current_vbeln IS NOT INITIAL
+       AND me->mo_alv2 IS BOUND.
+      me->load_kalem_data( ).
+      me->mo_alv2->refresh_table_display( ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD send_mail.
+    DATA: lt_recipients TYPE TABLE OF zgz_t_mail_user,
+          lo_send_req   TYPE REF TO cl_bcs,
+          lo_document   TYPE REF TO cl_document_bcs,
+          lo_recipient  TYPE REF TO if_recipient_bcs,
+          lt_body       TYPE bcsy_text,
+          ls_body       TYPE soli,
+          lv_subject    TYPE so_obj_des,
+          lv_body_line  TYPE bcsy_text,
+          lv_sent       TYPE os_boolean.
+
+    " Bakım tablosundan mail listesini al
+    SELECT * FROM zgz_t_mail_user
+      INTO TABLE @lt_recipients.
+
+    " boşsa uyarı
+    IF lt_recipients IS INITIAL.
+      MESSAGE '! Mail göndericisi belirtilmedi.' TYPE 'S' DISPLAY LIKE 'W'.
+      RETURN.
+    ENDIF.
+
+    TRY.
+        " mail nesnesi oluştur
+        lo_send_req = cl_bcs=>create_persistent( ).
+
+        " mail başlığı
+        lv_subject = 'Sipariş oluşturuldu!'.
+
+        " mail içeriği
+        " teklif VBELNleading zero yok
+        DATA(lv_teklif_disp) = |{ iv_teklif_vbeln ALPHA = OUT }|. "7.40
+
+        ls_body-line = |{ lv_teklif_disp } numaralı teklif siparişe dönüştürülmüştür.|.
+        APPEND ls_body TO lt_body.
+
+        " Document oluştur
+        lo_document = cl_document_bcs=>create_document(
+          i_type    = 'RAW'
+          i_text    = lt_body
+          i_subject = lv_subject ).
+
+        "document bağla
+        lo_send_req->set_document( lo_document ).
+
+        "alıcıları ekle
+        LOOP AT lt_recipients INTO DATA(ls_recipient).
+          "düz metni> nesne yap
+          lo_recipient = cl_cam_address_bcs=>create_internet_address(
+            i_address_string = ls_recipient-smtp_addr ).
+
+          "nesneyi zarfa ekle
+          lo_send_req->add_recipient(
+            i_recipient = lo_recipient
+            i_express   = 'X' ).
+        ENDLOOP.
+
+        " Mail gönderme sırasına
+        lv_sent = lo_send_req->send( i_with_error_screen = 'X' ). "hata varsa hata ekranı göster
+
+        IF lv_sent = abap_true.
+          COMMIT WORK.
+          MESSAGE 'Mail başarıyla gönderildi.' TYPE 'S'.
+        ELSE.
+          MESSAGE 'Mail gönderilemedi.' TYPE 'S' DISPLAY LIKE 'W'.
+        ENDIF.
+
+      CATCH cx_bcs INTO DATA(lo_ex).
+        MESSAGE |Mail hatası: { lo_ex->get_text( ) }| TYPE 'S' DISPLAY LIKE 'E'.
+    ENDTRY.
   ENDMETHOD.
 
   "update belge
@@ -1117,8 +1305,17 @@ CLASS cl_main IMPLEMENTATION.
 
     ENDLOOP.
 
+    " Üst ALV'yi yenile
     me->read_data( EXCEPTIONS no_data_found = 1 ).
     me->mo_alv->refresh_table_display( ).
+
+    " Alt ALV açıksa onu da yenile
+    IF me->mv_bottom_open = abap_true
+       AND me->mv_current_vbeln IS NOT INITIAL
+       AND me->mo_alv2 IS BOUND.
+      me->load_kalem_data( ).
+      me->mo_alv2->refresh_table_display( ).
+    ENDIF.
   ENDMETHOD.
 
   METHOD read_text_short.
@@ -1150,10 +1347,9 @@ CLASS cl_main IMPLEMENTATION.
 
     " İlk satırı al,ALV'de göstermek için
     IF sy-subrc = 0 AND lt_lines IS NOT INITIAL.
-      READ TABLE lt_lines INTO DATA(ls_line) INDEX 1.
-      IF sy-subrc = 0.
-        rv_text = ls_line-tdline.
-      ENDIF.
+      LOOP AT lt_lines INTO DATA(ls_line).
+        rv_text = rv_text && ls_line-tdline.
+      ENDLOOP.
     ENDIF.
   ENDMETHOD.
 
@@ -1163,7 +1359,7 @@ CLASS cl_main IMPLEMENTATION.
           lv_name   TYPE thead-tdname.
 
     "SAVE_TEXT , Siparişe yaz , Sipariş VBELN'i 10 karakter formatına çevir
-    lv_name = iv_siparis_vbeln.
+    lv_name = iv_teklif_vbeln.
 
     "READ_TEXT - Teklif notunu oku
     CALL FUNCTION 'READ_TEXT'
@@ -1183,6 +1379,7 @@ CLASS cl_main IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    lv_name = iv_siparis_vbeln.
     " HEADER doldur,Excel parametreleri
     ls_header-tdobject = 'VBBK'.
     ls_header-tdname   = lv_name.
@@ -1275,99 +1472,67 @@ CLASS cl_main IMPLEMENTATION.
       " Türkçe sayı formatından dönüştür
       DATA(lv_value) = <fs_mod>-value.
       REPLACE ALL OCCURRENCES OF ',' IN lv_value WITH '.'.
-
       DATA(lv_yeni) = CONV kwmeng( lv_value ).
 
-      " İzin verilen maksimum = kullanılan + açık
-      DATA(lv_max) = <fs_p>-kullanilan_miktar + <fs_p>-acik_miktar.
+      " Moda göre izin verilen maksimum
+      DATA: lv_max TYPE kwmeng,
+            lv_msg TYPE string.
 
-      "Hedef > Açık ise hata
-      IF lv_yeni > lv_max.
+      IF me->mv_popup_mode = 'C'.
+        " CREATE hedef sadece açık miktar kadar olabilir
+        lv_max = <fs_p>-acik_miktar.
+        lv_msg = 'Hedef miktar açık miktardan büyük olamaz!'.
+      ELSE.
+        " UPDATE mevcut sipariş + açık miktar kadar olabilir
+        lv_max = <fs_p>-siparis_miktar + <fs_p>-acik_miktar.
+        lv_msg = 'Hedef miktar, sipariş ve açık miktar toplamından büyük olamaz!'.
+      ENDIF.
+
+      " UPDATE modunda eşitlik de geçersiz
+      IF me->mv_popup_mode = 'U'.
+        IF lv_yeni = <fs_p>-siparis_miktar.   " ← eşit veya büyükse uyarı
+          CALL METHOD er_data_changed->add_protocol_entry
+            EXPORTING
+              i_msgid     = '00'
+              i_msgno     = '001'
+              i_msgty     = 'E'
+              i_msgv1     = 'Hedef miktar mevcut sipariş miktarına eşit olamaz!'
+              i_fieldname = <fs_mod>-fieldname
+              i_row_id    = <fs_mod>-row_id.
+        ELSEIF lv_yeni > lv_max.
+          CALL METHOD er_data_changed->add_protocol_entry
+            EXPORTING
+              i_msgid     = '00'
+              i_msgno     = '001'
+              i_msgty     = 'E'
+              i_msgv1     = 'Hedef miktar, sipariş ve açık miktar toplamından büyük olamaz!'
+              i_fieldname = <fs_mod>-fieldname
+              i_row_id    = <fs_mod>-row_id.
+        ENDIF.
+      ELSEIF lv_yeni > lv_max.
         CALL METHOD er_data_changed->add_protocol_entry
           EXPORTING
             i_msgid     = '00'
             i_msgno     = '001'
             i_msgty     = 'E'
-            i_msgv1     = 'Hedef miktar,açık miktarın ve sipariş miktarının toplamından büyük olamaz!'
+            i_msgv1     = lv_msg
             i_fieldname = <fs_mod>-fieldname
             i_row_id    = <fs_mod>-row_id.
       ENDIF.
     ENDLOOP.
   ENDMETHOD.
 
-  METHOD send_mail.
-    DATA: lt_recipients TYPE TABLE OF zgz_t_mail_user,
-          lo_send_req   TYPE REF TO cl_bcs,
-          lo_document   TYPE REF TO cl_document_bcs,
-          lo_recipient  TYPE REF TO if_recipient_bcs,
-          lt_body       TYPE bcsy_text,
-          ls_body       TYPE soli,
-          lv_subject    TYPE so_obj_des,
-          lv_body_line  TYPE bcsy_text,
-          lv_sent       TYPE os_boolean.
-
-    " Bakım tablosundan mail listesini al
-    SELECT * FROM zgz_t_mail_user
-      INTO TABLE @lt_recipients.
-
-    " boşsa uyarı
-    IF lt_recipients IS INITIAL.
-      MESSAGE '! Mail göndericisi belirtilmedi.' TYPE 'S' DISPLAY LIKE 'W'.
-      RETURN.
-    ENDIF.
-
-    TRY.
-        " mail nesnesi oluştur
-        lo_send_req = cl_bcs=>create_persistent( ).
-
-        " mail başlığı
-        lv_subject = 'Sipariş oluşturuldu!'.
-
-        " mail içeriği
-        " teklif VBELNleading zero yok
-        DATA(lv_teklif_disp) = |{ iv_teklif_vbeln ALPHA = OUT }|. "7.40
-
-        ls_body-line = |{ lv_teklif_disp } numaralı teklif siparişe dönüştürülmüştür.|.
-        APPEND ls_body TO lt_body.
-
-        " Document oluştur
-        lo_document = cl_document_bcs=>create_document(
-          i_type    = 'RAW'
-          i_text    = lt_body
-          i_subject = lv_subject ).
-
-        "document bağla
-        lo_send_req->set_document( lo_document ).
-
-        "alıcıları ekle
-        LOOP AT lt_recipients INTO DATA(ls_recipient).
-          "düz metni> nesne yap
-          lo_recipient = cl_cam_address_bcs=>create_internet_address(
-            i_address_string = ls_recipient-smtp_addr ).
-
-          "nesneyi zarfa ekle
-          lo_send_req->add_recipient(
-            i_recipient = lo_recipient
-            i_express   = 'X' ).
-        ENDLOOP.
-
-        " Mail gönderme sırasına
-        lv_sent = lo_send_req->send( i_with_error_screen = 'X' ). "hata varsa hata ekranı göster
-
-        IF lv_sent = abap_true.
-          COMMIT WORK.
-          MESSAGE 'Mail başarıyla gönderildi.' TYPE 'S'.
-        ELSE.
-          MESSAGE 'Mail gönderilemedi.' TYPE 'S' DISPLAY LIKE 'W'.
-        ENDIF.
-
-      CATCH cx_bcs INTO DATA(lo_ex).
-        MESSAGE |Mail hatası: { lo_ex->get_text( ) }| TYPE 'S' DISPLAY LIKE 'E'.
-    ENDTRY.
-  ENDMETHOD.
-
   METHOD handle_toolbar.
+    "BREAK ZGULTEN.
+    " CLEAR e_object->mt_toolbar.
+    DELETE e_object->mt_toolbar FROM 3 TO 14.
+
     APPEND VALUE #( butn_type = 3 ) TO e_object->mt_toolbar.
+
+    APPEND VALUE #( function  = '&RFRSH'
+                    icon      = '@5D@'
+                    text      = 'Yenile'
+                    quickinfo = 'Veritabanından yenile' ) TO e_object->mt_toolbar.
 
     APPEND VALUE #( function  = '&CREATE'
                     icon      = '@1G@'
@@ -1378,82 +1543,138 @@ CLASS cl_main IMPLEMENTATION.
                  icon      = '@5G@'
                  text      = 'Sipariş Güncelle'
                  quickinfo = 'Sipariş Güncelle' ) TO e_object->mt_toolbar.
+
   ENDMETHOD.
 
   METHOD handle_user_command.
     CASE e_ucomm.
+      WHEN '&RFRSH'.
+        "me->mo_alv->check_changed_data( ).
+        me->read_data( EXCEPTIONS no_data_found = 1 ).
+        CHECK sy-subrc EQ 0.
+        me->mo_alv->refresh_table_display( ).
+
+        " Alt ALV açıksa onu da yenile
+        IF me->mv_bottom_open = abap_true
+           AND me->mv_current_vbeln IS NOT INITIAL
+           AND me->mo_alv2 IS BOUND.
+          me->load_kalem_data( ).
+          me->mo_alv2->refresh_table_display( ).
+        ENDIF.
       WHEN '&CREATE'.
         me->mo_alv->check_changed_data( ).
         CLEAR me->mv_popup_mode.
         me->mv_popup_mode = 'C'.
         me->open_popup( ).
       WHEN '&UPDATE'.
+        me->mo_alv->check_changed_data( ).
         CLEAR me->mv_popup_mode.
         me->mv_popup_mode = 'U'.
         me->open_popup( ).
     ENDCASE.
   ENDMETHOD.
 
+  METHOD handle_hotspot_click.
+
+    DATA lv_tcode   TYPE tcode.
+    DATA lv_vbeln   TYPE vbeln_va.
+    DATA lt_bdcdata TYPE TABLE OF bdcdata.
+    DATA ls_bdcdata TYPE bdcdata.
+
+    READ TABLE me->mt_alv INDEX e_row_id-index
+      ASSIGNING FIELD-SYMBOL(<fs_alv>).
+    IF sy-subrc <> 0. RETURN. ENDIF.
+
+    CASE e_column_id-fieldname.
+      WHEN 'VBELN'.
+        lv_tcode = 'VA23'.
+        lv_vbeln = <fs_alv>-vbeln.
+      WHEN 'SIPARIS_NO'.
+        IF <fs_alv>-siparis_no IS INITIAL. RETURN. ENDIF.
+        lv_tcode = 'VA03'.
+        lv_vbeln = <fs_alv>-siparis_no.
+      WHEN OTHERS.
+        RETURN.
+    ENDCASE.
+
+    " BDC ile ilk ekrana vbeln yaz ve enter bas
+    ls_bdcdata-program  = 'SAPMV45A'.
+    ls_bdcdata-dynpro   = '0102'.
+    ls_bdcdata-dynbegin = 'X'.
+    APPEND ls_bdcdata TO lt_bdcdata.
+    CLEAR ls_bdcdata.
+
+    ls_bdcdata-fnam = 'VBAK-VBELN'.
+    ls_bdcdata-fval = lv_vbeln.
+    APPEND ls_bdcdata TO lt_bdcdata.
+    CLEAR ls_bdcdata.
+
+    ls_bdcdata-fnam = 'BDC_OKCODE'.
+    ls_bdcdata-fval = '/00'.
+    APPEND ls_bdcdata TO lt_bdcdata.
+    CLEAR ls_bdcdata.
+
+    CALL TRANSACTION lv_tcode USING lt_bdcdata MODE 'E'.
+  ENDMETHOD.
+
   METHOD handle_data_changed_main.
-    DATA: lv_target_vbeln TYPE vbeln_va,
-          lv_secili_var   TYPE abap_bool,
-          lv_yeni_index   TYPE i.
+    DATA: lv_yeni_index   TYPE i,
+          lv_target_vbeln TYPE vbeln_va.
 
-    "  değişen tüm SELKZ hücrelerini mt_alvye yansıt
-    LOOP AT er_data_changed->mt_mod_cells ASSIGNING FIELD-SYMBOL(<fs_mod>)
-      WHERE fieldname = 'SELKZ'.
-
-      READ TABLE me->mt_alv INDEX <fs_mod>-row_id ASSIGNING FIELD-SYMBOL(<fs_alv>).
-      IF sy-subrc <> 0. CONTINUE. ENDIF.
-
-      <fs_alv>-selkz = <fs_mod>-value.
-
-      " Yeni işaretlenen satırın indexini hatırla
-      IF <fs_mod>-value = 'X'.
-        lv_yeni_index = <fs_mod>-row_id.
-      ENDIF.
+    " Yeni işaretlenen satırı bul
+    LOOP AT er_data_changed->mt_mod_cells ASSIGNING FIELD-SYMBOL(<fs_mod>) WHERE fieldname = 'SELKZ' AND value = 'X'.
+      lv_yeni_index = <fs_mod>-row_id.
+      EXIT.
     ENDLOOP.
 
-    " Tek satır zorla, yeni işaretlenen hariç hepsini temizle
     IF lv_yeni_index > 0.
-      LOOP AT me->mt_alv ASSIGNING <fs_alv>.
-        IF sy-tabix <> lv_yeni_index.
+      " Diğer tüm satırların SELKZ'ini temizle, sadece yeni seçili
+      LOOP AT me->mt_alv ASSIGNING FIELD-SYMBOL(<fs_alv>).
+        " Disabled satırlara dokunma
+        IF ( sy-datum > <fs_alv>-bnddt ) OR ( <fs_alv>-gbstk = 'C' ).
+          CONTINUE.
+        ENDIF.
+
+        IF sy-tabix = lv_yeni_index.
+          <fs_alv>-selkz = abap_true.
+        ELSE.
           CLEAR <fs_alv>-selkz.
         ENDIF.
       ENDLOOP.
 
-      me->mo_alv->refresh_table_display( ).
+      " Alt ALV'yi aç
+      READ TABLE me->mt_alv INDEX lv_yeni_index ASSIGNING <fs_alv>.
+      IF sy-subrc = 0.
+        lv_target_vbeln = COND vbeln_va(
+          WHEN <fs_alv>-siparis_no IS NOT INITIAL THEN <fs_alv>-siparis_no
+          ELSE <fs_alv>-vbeln ).
+
+        me->open_bottom_alv( lv_target_vbeln ).
+      ENDIF.
+
+    ELSE.
+      " İşaret kaldırıldı alt ALVyi kapat
+      LOOP AT er_data_changed->mt_mod_cells ASSIGNING <fs_mod> WHERE fieldname = 'SELKZ'.
+        me->close_bottom_alv( ).
+        EXIT.
+      ENDLOOP.
     ENDIF.
 
-    " seçili olan tek satırı bul
-    LOOP AT me->mt_alv ASSIGNING <fs_alv> WHERE selkz = abap_true.
-      lv_target_vbeln = COND vbeln_va(
-        WHEN <fs_alv>-siparis_no IS NOT INITIAL THEN <fs_alv>-siparis_no
-        ELSE <fs_alv>-vbeln ).
-      lv_secili_var = abap_true.
-      EXIT.
-    ENDLOOP.
+    " Checkbox değişikliklerini ALVye yansıt
+    me->mo_alv->refresh_table_display(
+      is_stable = VALUE #( row = abap_true col = abap_true ) ).
+  ENDMETHOD.
 
-    " Hiç satır seçili değilse alt paneli kapat
-    IF lv_secili_var = abap_false.
-      me->mo_splitter->set_row_height( id = 2 height = 0 ).
-      me->mv_bottom_open = abap_false.
-      CLEAR me->mv_current_vbeln.
+  METHOD open_bottom_alv.
+    IF me->mv_current_vbeln = iv_vbeln AND me->mv_bottom_open = abap_true.
+      me->close_bottom_alv( ).
       RETURN.
     ENDIF.
 
-    " Aynı satır zaten açıksa bir şey yapma
-    IF me->mv_current_vbeln = lv_target_vbeln AND me->mv_bottom_open = abap_true.
-      RETURN.
-    ENDIF.
-
-    " Yeni satır seçildi  kalemleri yükle
-    me->mv_current_vbeln = lv_target_vbeln.
+    me->mv_current_vbeln = iv_vbeln.
     me->mv_bottom_open   = abap_true.
 
     me->load_kalem_data( ).
-
-    " Alt paneli aç
     me->mo_splitter->set_row_height( id = 2 height = 25 ).
 
     IF me->mo_alv2 IS INITIAL.
@@ -1474,52 +1695,9 @@ CLASS cl_main IMPLEMENTATION.
     ENDIF.
   ENDMETHOD.
 
-*  METHOD handle_hotspot_click.
-*    IF e_column_id-fieldname <> 'VBELN'.
-*      RETURN.
-*    ENDIF.
-*
-*    READ TABLE me->mt_alv INDEX e_row_id-index ASSIGNING FIELD-SYMBOL(<fs_alv>). "basılan satırın nosunu oku
-*    IF sy-subrc <> 0. RETURN. ENDIF.
-*
-*    "  Sipariş no doluysa - sipariş kalemleri, boşsa - teklif kalemleri
-*    DATA(lv_target_vbeln) = COND vbeln_va(
-*      WHEN <fs_alv>-siparis_no IS NOT INITIAL THEN <fs_alv>-siparis_no
-*      ELSE <fs_alv>-vbeln ).
-*
-*    " Aynı tekliğe tekrar tıklandı, alt paneli kapat
-*    IF me->mv_current_vbeln = <fs_alv>-vbeln AND me->mv_bottom_open = abap_true.
-*      me->mo_splitter->set_row_height( id = 2 height = 0 ).
-*      me->mv_bottom_open = abap_false. "artık açılcak
-*      CLEAR me->mv_current_vbeln.
-*      RETURN.
-*    ENDIF.
-*
-*    me->mv_current_vbeln = lv_target_vbeln.
-*    me->mv_bottom_open    = abap_true.
-*
-*    " Kalemleri ve hesapları yükle
-*    me->load_kalem_data( ).
-*
-*    " Alt paneli aç
-*    me->mo_splitter->set_row_height( id = 2 height = 25 ).
-*
-*    IF me->mo_alv2 IS INITIAL.
-*      CREATE OBJECT me->mo_alv2
-*        EXPORTING
-*          i_parent = me->mo_sub_bottom.
-*
-*      me->fcat( iv_struct = 'ZGZ_S_KALEM' ).
-*      "layout
-*      CLEAR me->ms_layout.
-*      me->ms_layout-col_opt = 'X'.
-*
-*      me->mo_alv2->set_table_for_first_display(
-*        EXPORTING is_layout       = me->ms_layout
-*        CHANGING  it_outtab       = me->mt_kalem
-*                  it_fieldcatalog = me->mt_fcat2 ).
-*    ELSE.
-*      me->mo_alv2->refresh_table_display( ).
-*    ENDIF.
-*  ENDMETHOD.
+  METHOD close_bottom_alv.
+    me->mo_splitter->set_row_height( id = 2 height = 0 ).
+    me->mv_bottom_open = abap_false.
+    CLEAR me->mv_current_vbeln.
+  ENDMETHOD.
 ENDCLASS.

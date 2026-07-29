@@ -3,23 +3,16 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <PROGDIR>
-    <NAME>ZGZ_P_FONKSIYONLAR</NAME>
-    <SUBC>1</SUBC>
+    <NAME>ZGZ_P_MESSAGE_CLASS_TOP</NAME>
+    <SUBC>I</SUBC>
     <RLOAD>T</RLOAD>
-    <FIXPT>X</FIXPT>
     <UCCHECK>X</UCCHECK>
    </PROGDIR>
    <TPOOL>
     <item>
      <ID>R</ID>
-     <ENTRY>Fonksiyonlar</ENTRY>
-     <LENGTH>12</LENGTH>
-    </item>
-    <item>
-     <ID>S</ID>
-     <KEY>P_VAL</KEY>
-     <ENTRY>Değer:</ENTRY>
-     <LENGTH>19</LENGTH>
+     <ENTRY>Include ZGZ_P_MESSAGE_CLASS_TOP</ENTRY>
+     <LENGTH>31</LENGTH>
     </item>
    </TPOOL>
   </asx:values>

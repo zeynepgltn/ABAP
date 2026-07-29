@@ -14,6 +14,6 @@ INITIALIZATION.
   go_obj->initialization( ).
 
 START-OF-SELECTION.
-  go_obj->get_data( it_belgen = s_belgen[] ). "tablonun tüm içeriği
+  "go_obj->get_data( it_belgen = s_belgen[] ). "tablonun tüm içeriği
 
   CALL SCREEN 0100.

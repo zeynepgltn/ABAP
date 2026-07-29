@@ -3,14 +3,14 @@
 *&---------------------------------------------------------------------*
 *&
 *&---------------------------------------------------------------------*
-REPORT ZGZ_P_SAS_GELISIM.
+REPORT zgz_p_sas_gelisim.
 
-INCLUDE ZGZ_I_SAS_GELISIM_TOP.
-INCLUDE ZGZ_I_SAS_GELISIM_CLS.
-INCLUDE ZGZ_I_SAS_GELISIM_SUB.
+INCLUDE zgz_i_sas_gelisim_top.
+INCLUDE zgz_i_sas_gelisim_cls.
+INCLUDE zgz_i_sas_gelisim_sub.
 
 INITIALIZATION.
   go_obj = cl_controller=>create_instance( ).
-  go_obj->initialization( ).
 
 START-OF-SELECTION.
+  go_obj->run( ).

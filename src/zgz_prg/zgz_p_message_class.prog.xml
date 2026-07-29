@@ -3,7 +3,7 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <PROGDIR>
-    <NAME>ZGZ_P_FONKSIYONLAR</NAME>
+    <NAME>ZGZ_P_MESSAGE_CLASS</NAME>
     <SUBC>1</SUBC>
     <RLOAD>T</RLOAD>
     <FIXPT>X</FIXPT>
@@ -11,15 +11,15 @@
    </PROGDIR>
    <TPOOL>
     <item>
-     <ID>R</ID>
-     <ENTRY>Fonksiyonlar</ENTRY>
-     <LENGTH>12</LENGTH>
+     <ID>I</ID>
+     <KEY>000</KEY>
+     <ENTRY>TEXT-000</ENTRY>
+     <LENGTH>18</LENGTH>
     </item>
     <item>
-     <ID>S</ID>
-     <KEY>P_VAL</KEY>
-     <ENTRY>Değer:</ENTRY>
-     <LENGTH>19</LENGTH>
+     <ID>R</ID>
+     <ENTRY>Message Class</ENTRY>
+     <LENGTH>13</LENGTH>
     </item>
    </TPOOL>
   </asx:values>

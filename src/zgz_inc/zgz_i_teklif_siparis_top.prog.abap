@@ -23,15 +23,14 @@ CLASS cl_main DEFINITION CREATE PRIVATE.
            END OF ty_vbak.
 
     "alvler
-    DATA: "mt_alv        TYPE TABLE OF zgz_s_teklif_siparis,
-      mt_alv        TYPE TABLE OF ty_vbak,
-      ms_layout     TYPE lvc_s_layo,
-      mt_fcat       TYPE lvc_t_fcat,
-      mo_alv        TYPE REF TO cl_gui_alv_grid,
-      mo_container  TYPE REF TO cl_gui_docking_container,
-      mo_splitter   TYPE REF TO cl_gui_splitter_container,
-      mo_sub_top    TYPE REF TO cl_gui_container,
-      mo_sub_bottom TYPE REF TO cl_gui_container.
+    DATA: mt_alv        TYPE TABLE OF ty_vbak,
+          ms_layout     TYPE lvc_s_layo,
+          mt_fcat       TYPE lvc_t_fcat,
+          mo_alv        TYPE REF TO cl_gui_alv_grid,
+          mo_container  TYPE REF TO cl_gui_docking_container,
+          mo_splitter   TYPE REF TO cl_gui_splitter_container,
+          mo_sub_top    TYPE REF TO cl_gui_container,
+          mo_sub_bottom TYPE REF TO cl_gui_container.
 
     DATA: mt_kalem         TYPE TABLE OF zgz_s_kalem,
           mt_fcat2         TYPE lvc_t_fcat,
@@ -66,23 +65,23 @@ CLASS cl_main DEFINITION CREATE PRIVATE.
         FOR EVENT data_changed OF cl_gui_alv_grid
         IMPORTING er_data_changed,
 
-      calc_siparis_miktar
-        IMPORTING iv_vbeln         TYPE vbeln
-                  iv_posnr         TYPE posnr
-        RETURNING VALUE(rv_miktar) TYPE kwmeng,
-
+      "hesaplamalar
       calc_acik_miktar
         IMPORTING iv_kwmeng         TYPE kwmeng
                   iv_siparis_miktar TYPE kwmeng
         RETURNING VALUE(rv_miktar)  TYPE kwmeng,
+
       "sipariş oluşturma
       create_orders,
       update_orders,
+      open_bottom_alv
+        IMPORTING iv_vbeln TYPE vbeln_va,
+      close_bottom_alv,
 
       "TEXTLER
       read_text_short
         IMPORTING iv_vbeln       TYPE vbeln
-        RETURNING VALUE(rv_text) TYPE tdline,
+        RETURNING VALUE(rv_text) TYPE String,
       transfer_text
         IMPORTING iv_teklif_vbeln  TYPE vbeln
                   iv_siparis_vbeln TYPE vbeln,
@@ -102,11 +101,12 @@ CLASS cl_main DEFINITION CREATE PRIVATE.
       handle_user_command FOR EVENT user_command OF cl_gui_alv_grid
         IMPORTING e_ucomm,
 
+      handle_hotspot_click FOR EVENT hotspot_click OF cl_gui_alv_grid
+        IMPORTING e_row_id
+                  e_column_id,
+
       handle_data_changed_main FOR EVENT data_changed OF cl_gui_alv_grid
         IMPORTING er_data_changed.
-
-*      handle_hotspot_click FOR EVENT hotspot_click OF cl_gui_alv_grid
-*        IMPORTING e_row_id e_column_id.
 
   PRIVATE SECTION.
     CLASS-DATA: mo_instance TYPE REF TO cl_main.
